@@ -19,7 +19,8 @@
             </div>
             <nav class="tab-nav">
                 <button class="tab-btn active" data-view="today">오늘</button>
-                <button class="tab-btn" data-view="archive">연구 아카이브</button>
+                <button class="tab-btn" data-view="radar">AI Radar</button>
+                <button class="tab-btn" data-view="core">Core Research</button>
                 <button class="tab-btn" data-view="calendar">캘린더</button>
                 <button class="tab-btn" data-view="stats">통계</button>
             </nav>
@@ -36,15 +37,14 @@
                 <div class="weekly-ribbon" id="weekly-ribbon"></div>
             </div>
 
-            <!-- Manifesto -->
             <div class="manifesto">
                 <p>영 공부해라. <span class="hl">살아남는 길은 매우 좁다.</span></p>
             </div>
 
-            <!-- 3 Time Blocks -->
+            <!-- 3-Stage Funnel -->
             <div class="mode-grid" id="mode-container"></div>
 
-            <!-- Diary + Hanja Row -->
+            <!-- Bottom: Diary + Hanja + Memo -->
             <div class="bottom-grid">
                 <section class="card diary-card">
                     <div class="card-header"><h3>오늘의 일기 / 영어 일기</h3><span class="badge important">중요</span><span class="char-count" id="diary-char-count">0자</span></div>
@@ -57,39 +57,132 @@
                             <div class="hanja-character" id="hanja-char">學</div>
                             <div class="hanja-info">
                                 <div class="hanja-reading" id="hanja-reading">배울 학</div>
-                                <div class="hanja-meaning" id="hanja-meaning">learn, study</div>
+                                <div class="hanja-meaning" id="hanja-meaning">learn</div>
                                 <div class="hanja-detail" id="hanja-detail"></div>
                             </div>
                         </div>
                         <div class="hanja-record">
                             <div class="hanja-input-row">
                                 <input type="text" id="hanja-char-input" class="hanja-input char-input" placeholder="漢" maxlength="1">
-                                <input type="text" id="hanja-reading-input" class="hanja-input" placeholder="훈음 (예: 한나라 한)">
+                                <input type="text" id="hanja-reading-input" class="hanja-input" placeholder="훈음">
                             </div>
-                            <input type="text" id="hanja-note-input" class="hanja-input full" placeholder="메모 / 용례...">
+                            <input type="text" id="hanja-note-input" class="hanja-input full" placeholder="메모 / 용례">
                         </div>
                     </section>
                     <section class="card">
                         <div class="card-header"><h3>내일 AI 작업 구상</h3></div>
-                        <textarea id="daily-memo" class="memo-textarea" placeholder="내일 AI에게 시킬 작업, 짧은 메모..."></textarea>
+                        <textarea id="daily-memo" class="memo-textarea" placeholder="내일 AI에게 시킬 작업..."></textarea>
                     </section>
                 </div>
             </div>
         </main>
 
-        <!-- ===== ARCHIVE VIEW ===== -->
-        <main class="view" id="view-archive">
-            <div class="archive-header">
-                <h2>연구 3줄 로그 아카이브</h2>
-                <div class="archive-search">
-                    <input type="text" id="archive-search" class="search-input" placeholder="태그 또는 키워드 검색 (예: #OS, #KV_Cache, LLM)">
-                    <button id="archive-search-btn" class="search-btn">검색</button>
+        <!-- ===== AI RADAR (Track A) ===== -->
+        <main class="view" id="view-radar">
+            <div class="track-header track-a-header">
+                <div>
+                    <h2>Track A: AI Radar</h2>
+                    <p class="track-desc">넓고 빠른 정보 수집 — AI 90% + 나 10%</p>
+                </div>
+                <button class="add-btn" id="add-radar-btn">+ 새 레이더 추가</button>
+            </div>
+
+            <!-- Add form (hidden by default) -->
+            <div class="card radar-form" id="radar-form" style="display:none;">
+                <div class="form-row">
+                    <label>제목</label>
+                    <input type="text" id="radar-title" placeholder="예: GTC 2026 분석 - LLM Serving 관점">
+                </div>
+                <div class="form-row">
+                    <label>태그</label>
+                    <input type="text" id="radar-tags" placeholder="#Trend #Hardware #MoE">
+                </div>
+                <div class="form-row">
+                    <label>AI 요약 (복붙)</label>
+                    <textarea id="radar-body" rows="6" placeholder="Claude/Gemini가 작성한 요약을 여기에 붙여넣기"></textarea>
+                </div>
+                <div class="form-row star-row">
+                    <label>🌟 내 생각 (1줄) <span class="badge important">핵심</span></label>
+                    <input type="text" id="radar-insight" placeholder="이게 내 연구에 의미하는 것은...">
+                </div>
+                <div class="form-actions">
+                    <button class="save-btn" id="radar-save-btn">저장</button>
+                    <button class="cancel-btn" id="radar-cancel-btn">취소</button>
+                    <button class="promote-btn" id="radar-promote-btn" title="이 항목을 Core Research로 승격">➡️ Core로 승격</button>
                 </div>
             </div>
-            <div id="archive-results"></div>
+
+            <div class="search-bar">
+                <input type="text" id="radar-search" class="search-input" placeholder="태그 또는 키워드 검색">
+                <button id="radar-search-btn" class="search-btn">검색</button>
+            </div>
+
+            <div id="radar-list"></div>
         </main>
 
-        <!-- ===== CALENDAR VIEW ===== -->
+        <!-- ===== CORE RESEARCH (Track B) ===== -->
+        <main class="view" id="view-core">
+            <div class="track-header track-b-header">
+                <div>
+                    <h2>Track B: Core Research</h2>
+                    <p class="track-desc">깊고 단단한 내 무기 — 나 90% + AI 10%</p>
+                </div>
+                <button class="add-btn" id="add-core-btn">+ 새 논문 추가</button>
+            </div>
+
+            <!-- Add form -->
+            <div class="card core-form" id="core-form" style="display:none;">
+                <div class="form-row">
+                    <label>논문명</label>
+                    <input type="text" id="core-paper" placeholder="예: LMCache">
+                </div>
+                <div class="form-row">
+                    <label>상태</label>
+                    <select id="core-status">
+                        <option value="reading">📖 읽는 중</option>
+                        <option value="implemented">⚙️ 구현 완료</option>
+                        <option value="cited">📝 논문 인용됨</option>
+                        <option value="archived">📦 보관</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>태그</label>
+                    <input type="text" id="core-tags" placeholder="#KV_Cache #LLM_OS #RL">
+                </div>
+                <div class="form-row">
+                    <label>내 연구 적용점</label>
+                    <textarea id="core-application" rows="3" placeholder="이 논문의 어떤 부분을 내 연구에 어떻게 적용할 수 있는가?"></textarea>
+                </div>
+                <div class="form-row">
+                    <label>한계점 / Critique <span class="badge critique">내 시각</span></label>
+                    <textarea id="core-critique" rows="3" placeholder="AI가 못 찾는 비판적 시각. 이 논문의 약점은?"></textarea>
+                </div>
+                <div class="form-row">
+                    <label>핵심 메모</label>
+                    <textarea id="core-notes" rows="4" placeholder="수식 분석, Figure 해석, 실험 재현 결과 등"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="save-btn" id="core-save-btn">저장</button>
+                    <button class="cancel-btn" id="core-cancel-btn">취소</button>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="core-search" class="search-input" placeholder="논문명, 태그, 키워드 검색">
+                <button id="core-search-btn" class="search-btn">검색</button>
+            </div>
+
+            <div class="core-filters" id="core-filters">
+                <button class="filter-btn active" data-filter="all">전체</button>
+                <button class="filter-btn" data-filter="reading">📖 읽는 중</button>
+                <button class="filter-btn" data-filter="implemented">⚙️ 구현</button>
+                <button class="filter-btn" data-filter="cited">📝 인용</button>
+            </div>
+
+            <div id="core-list"></div>
+        </main>
+
+        <!-- ===== CALENDAR ===== -->
         <main class="view" id="view-calendar">
             <div class="calendar-header">
                 <button id="prev-month" class="nav-btn">&larr;</button>
@@ -114,7 +207,7 @@
             </div>
         </main>
 
-        <!-- ===== STATS VIEW ===== -->
+        <!-- ===== STATS ===== -->
         <main class="view" id="view-stats">
             <h2 class="stats-title">이번 주 달성률</h2>
             <div class="stats-overview" id="stats-weekly"></div>
