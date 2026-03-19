@@ -1,0 +1,81 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1773902858164,
+  "projectRoot": "c:\\Users\\sang8\\sujPlanner",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "css": {
+      "path": "css",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1773902858144,
+      "keyFiles": [
+        "style.css"
+      ]
+    },
+    "js": {
+      "path": "js",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1773902858145,
+      "keyFiles": [
+        "app.js",
+        "firebase-config.js",
+        "migrate-data.js",
+        "migrate-notion.js"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "js\\app.js",
+      "accessCount": 13,
+      "lastAccessed": 1773904050054,
+      "type": "file"
+    },
+    {
+      "path": "index.html",
+      "accessCount": 2,
+      "lastAccessed": 1773903877872,
+      "type": "file"
+    },
+    {
+      "path": "css\\style.css",
+      "accessCount": 2,
+      "lastAccessed": 1773903897811,
+      "type": "file"
+    },
+    {
+      "path": "js\\firebase-config.js",
+      "accessCount": 2,
+      "lastAccessed": 1773903923077,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

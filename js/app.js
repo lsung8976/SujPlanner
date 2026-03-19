@@ -107,14 +107,26 @@ function cacheDom(){
     ].forEach(function(id){ D[id.replace(/-/g,'_')]=document.getElementById(id); });
 }
 
+// ===== LOADING =====
+function showLoading(msg){
+    var el=document.getElementById('loading-overlay');
+    if(el){el.classList.remove('hidden');if(msg)el.querySelector('.loading-text').textContent=msg}
+}
+function hideLoading(){
+    var el=document.getElementById('loading-overlay');
+    if(el)el.classList.add('hidden');
+}
+
 // ===== INIT =====
 async function init(){
     cacheDom();
     setupEvents();
     setupTabs();
+    showLoading('오늘 데이터 불러오는 중...');
     await loadDate(currentDate);
     renderRibbon();
     updateSync();
+    hideLoading();
 }
 
 function updateSync(){
@@ -360,7 +372,7 @@ async function promoteRadarToCore(){
 }
 
 async function loadRadarList(query){
-    var list=D.radar_list; list.innerHTML='';
+    var list=D.radar_list; list.innerHTML='';showLoading('AI Radar 불러오는 중...');
     var items=await TrackService.getAll('radar_entries');
     var q=query.trim().toLowerCase();
 
@@ -370,6 +382,7 @@ async function loadRadarList(query){
         });
     }
 
+    hideLoading();
     if(!items.length){list.innerHTML='<div class="empty-state">'+(q?'"'+query+'" 검색 결과 없음':'아직 AI Radar 항목이 없습니다. + 버튼으로 추가해보세요!')+'</div>';return}
 
     items.forEach(function(item){
@@ -421,6 +434,7 @@ async function loadRadarList(query){
         entry.appendChild(acts);
         list.appendChild(entry);
     });
+    hideLoading();
 }
 
 // ===== TRACK B: CORE RESEARCH =====
@@ -444,13 +458,14 @@ async function saveCoreEntry(){
 }
 
 async function loadCoreList(query,filter){
-    var list=D.core_list;list.innerHTML='';
+    var list=D.core_list;list.innerHTML='';showLoading('Core Research 불러오는 중...');
     var items=await TrackService.getAll('core_entries');
     var q=query.trim().toLowerCase();
 
     if(q){items=items.filter(function(x){return((x.paper||'')+' '+(x.tags||'')+' '+(x.application||'')+' '+(x.critique||'')+' '+(x.notes||'')).toLowerCase().indexOf(q)>=0})}
     if(filter&&filter!=='all'){items=items.filter(function(x){return x.status===filter})}
 
+    hideLoading();
     if(!items.length){list.innerHTML='<div class="empty-state">'+(q||filter!=='all'?'검색 결과 없음':'아직 Core Research 항목이 없습니다.')+'</div>';return}
 
     var statusMap={reading:'📖 읽는 중',implemented:'⚙️ 구현 완료',cited:'📝 인용됨',archived:'📦 보관'};
@@ -505,6 +520,7 @@ async function loadCoreList(query,filter){
         entry.appendChild(acts);
         list.appendChild(entry);
     });
+    hideLoading();
 }
 
 // ===== CALENDAR =====
@@ -512,13 +528,15 @@ async function renderCalendar(){
     var y=calendarDate.getFullYear(),m=calendarDate.getMonth();
     D.calendar_month_display.textContent=y+'년 '+(m+1)+'월';
     D.calendar_grid.innerHTML='';D.day_detail.style.display='none';
+    showLoading(y+'년 '+(m+1)+'월 불러오는 중...');
     ['일','월','화','수','목','금','토'].forEach(function(n,i){var h=document.createElement('div');h.className='cal-day-header'+(i===0?' sun':i===6?' sat':'');h.textContent=n;D.calendar_grid.appendChild(h)});
     var fd=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate(),today=new Date();
-    var md={};for(var d=1;d<=dim;d++){var ds=fmt(new Date(y,m,d));var data=await DataService.getDailyData(ds);if(data)md[ds]=data}
+    // Batch load entire month in 1 query
+    var md=await DataService.getMonthData(y,m);
     for(var e=0;e<fd;e++){var emp=document.createElement('div');emp.className='cal-day empty';D.calendar_grid.appendChild(emp)}
     for(var day=1;day<=dim;day++){
         var cell=document.createElement('div');cell.className='cal-day';
-        var dk=fmt(new Date(y,m,day)),dd=md[dk],rate=compRate(dd);
+        var dk=fmt(new Date(y,m,day)),dd=md[dk]||null,rate=compRate(dd);
         if(dd&&Object.keys(dd.tasks||{}).length>0){if(rate>=1)cell.classList.add('level-4');else if(rate>=.71)cell.classList.add('level-3');else if(rate>=.31)cell.classList.add('level-2');else cell.classList.add('level-1')}
         if(dd&&(dd.diary||dd.note)&&(dd.diary||dd.note).trim())cell.classList.add('has-diary');
         if(sameDay(new Date(y,m,day),today))cell.classList.add('today');
@@ -526,6 +544,7 @@ async function renderCalendar(){
         (function(data,key){cell.addEventListener('click',function(){showDetail(key,data)})})(dd,dk);
         D.calendar_grid.appendChild(cell);
     }
+    hideLoading();
 }
 
 function showDetail(ds,data){
@@ -550,14 +569,23 @@ function showDetail(ds,data){
 }
 
 // ===== STATS =====
-async function renderStats(){await renderWeeklyStats();await renderModeStats();await renderDiaryStats()}
+async function renderStats(){
+    showLoading('통계 계산 중...');
+    // Batch load 30 days in 1 query
+    var today=new Date();
+    var rangeData=await DataService.getDateRange(today,30);
+    renderWeeklyStats(rangeData);
+    renderModeStats(rangeData);
+    renderDiaryStats(rangeData);
+    hideLoading();
+}
 
-async function renderWeeklyStats(){
+function renderWeeklyStats(rangeData){
     var c=document.getElementById('stats-weekly');c.innerHTML='';
     var today=new Date(),start=new Date(today);start.setDate(today.getDate()-today.getDay());
     for(var i=0;i<7;i++){
         var d=new Date(start);d.setDate(start.getDate()+i);
-        var data=await DataService.getDailyData(fmt(d)),rate=compRate(data),pct=Math.round(rate*100);
+        var data=rangeData[fmt(d)]||null,rate=compRate(data),pct=Math.round(rate*100);
         var circ=2*Math.PI*20,off=circ-(rate*circ);
         var card=document.createElement('div');card.className='stat-day-card';
         card.innerHTML='<div class="stat-day-name">'+dn(i)+'</div><div class="stat-day-date">'+(d.getMonth()+1)+'/'+d.getDate()+'</div><div class="stat-ring"><svg width="48" height="48" viewBox="0 0 50 50"><circle class="stat-ring-bg" cx="25" cy="25" r="20"/><circle class="stat-ring-fill" cx="25" cy="25" r="20" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'"/></svg><span class="stat-percent">'+pct+'%</span></div>';
@@ -565,10 +593,9 @@ async function renderWeeklyStats(){
     }
 }
 
-async function renderModeStats(){
+function renderModeStats(rangeData){
     var c=document.getElementById('stats-categories');c.innerHTML='';
-    var today=new Date(),dd=[];
-    for(var i=0;i<30;i++){var d=new Date(today);d.setDate(today.getDate()-i);var data=await DataService.getDailyData(fmt(d));if(data)dd.push(data)}
+    var dd=[];Object.keys(rangeData).forEach(function(k){if(rangeData[k])dd.push(rangeData[k])});
     MODES.forEach(function(mode){
         var done=0,total=0;dd.forEach(function(data){mode.tasks.forEach(function(t){total++;if(data.tasks&&data.tasks[t.id])done++})});
         var pct=total?Math.round(done/total*100):0;
@@ -578,10 +605,15 @@ async function renderModeStats(){
     });
 }
 
-async function renderDiaryStats(){
+function renderDiaryStats(rangeData){
     var c=document.getElementById('stats-diary');c.innerHTML='';
     var today=new Date(),written=0,dots=[];
-    for(var i=29;i>=0;i--){var d=new Date(today);d.setDate(today.getDate()-i);var data=await DataService.getDailyData(fmt(d));var has=data&&(data.diary||data.note)&&(data.diary||data.note).trim().length>0;if(has)written++;dots.push(has)}
+    for(var i=29;i>=0;i--){
+        var d=new Date(today);d.setDate(today.getDate()-i);
+        var data=rangeData[fmt(d)]||null;
+        var has=data&&(data.diary||data.note)&&(data.diary||data.note).trim().length>0;
+        if(has)written++;dots.push(has);
+    }
     c.innerHTML='<div class="diary-stats-text">최근 30일 중 '+written+'일 작성 ('+Math.round(written/30*100)+'%)</div>';
     var dd=document.createElement('div');dd.className='diary-streak';
     dots.forEach(function(h){var dot=document.createElement('div');dot.className='diary-dot'+(h?' written':'');dd.appendChild(dot)});
