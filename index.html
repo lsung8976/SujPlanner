@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SujPlanner</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header class="top-bar">
+            <div class="top-left">
+                <h1 class="app-title">SujPlanner</h1>
+                <span class="app-subtitle" id="sync-status"></span>
+            </div>
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-view="today">오늘</button>
+                <button class="tab-btn" data-view="archive">연구 아카이브</button>
+                <button class="tab-btn" data-view="calendar">캘린더</button>
+                <button class="tab-btn" data-view="stats">통계</button>
+            </nav>
+        </header>
+
+        <!-- ===== TODAY VIEW ===== -->
+        <main class="view active" id="view-today">
+            <div class="date-bar">
+                <button id="prev-day" class="nav-btn">&larr;</button>
+                <h2 id="current-date-display">Today</h2>
+                <button id="next-day" class="nav-btn">&rarr;</button>
+            </div>
+            <div class="ribbon-wrap">
+                <div class="weekly-ribbon" id="weekly-ribbon"></div>
+            </div>
+
+            <!-- Manifesto -->
+            <div class="manifesto">
+                <p>영 공부해라. <span class="hl">살아남는 길은 매우 좁다.</span></p>
+            </div>
+
+            <!-- 3 Time Blocks -->
+            <div class="mode-grid" id="mode-container"></div>
+
+            <!-- Diary + Hanja Row -->
+            <div class="bottom-grid">
+                <section class="card diary-card">
+                    <div class="card-header"><h3>오늘의 일기 / 영어 일기</h3><span class="badge important">중요</span><span class="char-count" id="diary-char-count">0자</span></div>
+                    <textarea id="daily-diary" class="diary-textarea" placeholder="오늘 하루를 기록해보세요. 영어 최소 3문장 포함!"></textarea>
+                </section>
+                <div class="side-col">
+                    <section class="card hanja-card">
+                        <div class="card-header"><h3>오늘의 한자</h3></div>
+                        <div class="hanja-today">
+                            <div class="hanja-character" id="hanja-char">學</div>
+                            <div class="hanja-info">
+                                <div class="hanja-reading" id="hanja-reading">배울 학</div>
+                                <div class="hanja-meaning" id="hanja-meaning">learn, study</div>
+                                <div class="hanja-detail" id="hanja-detail"></div>
+                            </div>
+                        </div>
+                        <div class="hanja-record">
+                            <div class="hanja-input-row">
+                                <input type="text" id="hanja-char-input" class="hanja-input char-input" placeholder="漢" maxlength="1">
+                                <input type="text" id="hanja-reading-input" class="hanja-input" placeholder="훈음 (예: 한나라 한)">
+                            </div>
+                            <input type="text" id="hanja-note-input" class="hanja-input full" placeholder="메모 / 용례...">
+                        </div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>내일 AI 작업 구상</h3></div>
+                        <textarea id="daily-memo" class="memo-textarea" placeholder="내일 AI에게 시킬 작업, 짧은 메모..."></textarea>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- ===== ARCHIVE VIEW ===== -->
+        <main class="view" id="view-archive">
+            <div class="archive-header">
+                <h2>연구 3줄 로그 아카이브</h2>
+                <div class="archive-search">
+                    <input type="text" id="archive-search" class="search-input" placeholder="태그 또는 키워드 검색 (예: #OS, #KV_Cache, LLM)">
+                    <button id="archive-search-btn" class="search-btn">검색</button>
+                </div>
+            </div>
+            <div id="archive-results"></div>
+        </main>
+
+        <!-- ===== CALENDAR VIEW ===== -->
+        <main class="view" id="view-calendar">
+            <div class="calendar-header">
+                <button id="prev-month" class="nav-btn">&larr;</button>
+                <h2 id="calendar-month-display"></h2>
+                <button id="next-month" class="nav-btn">&rarr;</button>
+            </div>
+            <div class="calendar-legend">
+                <span class="legend-item"><span class="legend-dot empty"></span>없음</span>
+                <span class="legend-item"><span class="legend-dot low"></span>~30%</span>
+                <span class="legend-item"><span class="legend-dot mid"></span>~70%</span>
+                <span class="legend-item"><span class="legend-dot high"></span>~99%</span>
+                <span class="legend-item"><span class="legend-dot full"></span>100%</span>
+                <span class="legend-item"><span class="legend-dot diary-mark"></span>일기</span>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+            <div class="card day-detail" id="day-detail" style="display:none;">
+                <div class="day-detail-header">
+                    <h3 id="detail-date"></h3>
+                    <button class="nav-btn" id="close-detail">&times;</button>
+                </div>
+                <div id="detail-content"></div>
+            </div>
+        </main>
+
+        <!-- ===== STATS VIEW ===== -->
+        <main class="view" id="view-stats">
+            <h2 class="stats-title">이번 주 달성률</h2>
+            <div class="stats-overview" id="stats-weekly"></div>
+            <h2 class="stats-title">모드별 통계 (최근 30일)</h2>
+            <div class="stats-categories" id="stats-categories"></div>
+            <h2 class="stats-title">일기 작성률 (최근 30일)</h2>
+            <div class="stats-diary" id="stats-diary"></div>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="./js/firebase-config.js"></script>
+    <script src="./js/app.js"></script>
+    <script src="./js/migrate-data.js"></script>
+</body>
+</html>
