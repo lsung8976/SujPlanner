@@ -47,6 +47,25 @@
                 <p>영 공부해라. <span class="hl">살아남는 길은 매우 좁다.</span></p>
             </div>
 
+            <!-- Flow Mode Toggle -->
+            <div class="flow-toggle-bar">
+                <div class="flow-toggle-left">
+                    <button id="flow-mode-btn" class="flow-mode-btn">오늘 하루 종일 실험/구상만 했음</button>
+                    <span class="flow-hint">켜면 체크리스트 대신 자유 기록 모드로 전환됩니다</span>
+                </div>
+                <div class="core-flex-legend">
+                    <span class="legend-core">Core (매일)</span>
+                    <span class="legend-flex">Flex (유연)</span>
+                </div>
+            </div>
+
+            <!-- Flow Mode Area (hidden by default) -->
+            <div class="flow-mode-area card" id="flow-mode-area" style="display:none;">
+                <div class="card-header"><h3>오늘 실험/구상한 핵심 내용과 결과</h3><span class="badge" style="background:#fef3c7;color:#92400e">Flow Mode</span></div>
+                <textarea id="flow-text" class="flow-textarea" placeholder="오늘 하루 종일 몰입한 내용을 자유롭게 기록하세요. 이것만 채우면 오늘 달성률 100%!"></textarea>
+                <div class="flow-core-tasks" id="flow-core-tasks"></div>
+            </div>
+
             <!-- 3-Stage Funnel -->
             <div class="mode-grid" id="mode-container"></div>
 
@@ -90,7 +109,20 @@
                     <h2>Track A: AI Radar</h2>
                     <p class="track-desc">넓고 빠른 정보 수집 — AI 90% + 나 10%</p>
                 </div>
-                <button class="add-btn" id="add-radar-btn">+ 새 레이더 추가</button>
+                <div class="radar-btn-group">
+                    <button class="add-btn paste-btn" id="quick-paste-btn">📥 AI 텍스트 붙여넣기</button>
+                    <button class="add-btn" id="add-radar-btn">+ 수동 추가</button>
+                </div>
+            </div>
+
+            <!-- Quick Paste Parser -->
+            <div class="card radar-parser" id="radar-parser" style="display:none;">
+                <div class="card-header"><h3>Claude/Gemini 텍스트 통째로 붙여넣기</h3><span class="badge" style="background:#fff7ed;color:#ea580c">자동 파싱</span></div>
+                <textarea id="radar-paste-input" class="parser-textarea" rows="8" placeholder="AI가 뱉어낸 논문 분석/요약 텍스트를 통째로 여기에 붙여넣으세요.&#10;&#10;예시:&#10;## PagedAttention: Efficient Memory Management for LLM Serving&#10;태그: #KV_Cache #LLM_Serving #vLLM&#10;요약: OS의 Virtual Memory Paging 기법을 KV 캐시 관리에 적용..."></textarea>
+                <div class="form-actions">
+                    <button class="save-btn" id="radar-parse-btn" style="background:var(--orange)">자동 분리 &rarr; 폼에 채우기</button>
+                    <button class="cancel-btn" id="radar-parser-cancel-btn">취소</button>
+                </div>
             </div>
 
             <!-- Add form (hidden by default) -->
@@ -222,6 +254,28 @@
             <h2 class="stats-title">일기 작성률 (최근 30일)</h2>
             <div class="stats-diary" id="stats-diary"></div>
         </main>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div class="modal-backdrop" id="promote-modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Core Research로 승격</h3>
+            <p class="modal-desc">이 논문으로 무엇을 하실 건가요?</p>
+            <div class="modal-options" id="promote-options">
+                <label class="modal-option"><input type="checkbox" value="experiment"> 실험 코드 돌려보기</label>
+                <label class="modal-option"><input type="checkbox" value="math"> 수식 자세히 유도하기</label>
+                <label class="modal-option"><input type="checkbox" value="benchmark"> 벤치마크 데이터 확인</label>
+                <label class="modal-option"><input type="checkbox" value="implement"> 내 연구에 구현 적용</label>
+                <label class="modal-option"><input type="checkbox" value="cite"> 논문 인용 검토</label>
+            </div>
+            <div class="modal-custom">
+                <input type="text" id="promote-custom" placeholder="직접 입력 (선택)">
+            </div>
+            <div class="form-actions">
+                <button class="save-btn" id="promote-confirm-btn">승격하기</button>
+                <button class="cancel-btn" id="promote-cancel-btn">취소</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

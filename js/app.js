@@ -37,9 +37,13 @@ var MODES = [
     }
 ];
 
+// ===== CORE TASKS (무조건 매일) =====
+var CORE_TASK_IDS = ['swimming', 'radar_entry', 'eng_diary'];
+
 // ===== STATE =====
 var currentDate=new Date(), calendarDate=new Date();
-var currentData={tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:''};
+var flowMode=false;
+var currentData={tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
 
 // ===== UTILS =====
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -47,7 +51,7 @@ function dn(i){return['일','월','화','수','목','금','토'][i]}
 function kd(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+dn(d.getDay())+')'}
 function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function allIds(){var r=[];MODES.forEach(function(m){m.tasks.forEach(function(t){r.push(t.id)})});return r}
-function compRate(d){if(!d||!d.tasks)return 0;var ids=allIds(),done=0;ids.forEach(function(id){if(d.tasks[id])done++});return ids.length?done/ids.length:0}
+function compRate(d){if(!d||!d.tasks)return 0;if(d.flow_mode&&d.flow_text&&d.flow_text.trim().length>0)return 1;var ids=allIds(),done=0;ids.forEach(function(id){if(d.tasks[id])done++});return ids.length?done/ids.length:0}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 
 // ===== TRACK A/B DATA SERVICE =====
@@ -99,8 +103,11 @@ function cacheDom(){
      'hanja-char-input','hanja-reading-input','hanja-note-input',
      'calendar-month-display','prev-month','next-month','calendar-grid',
      'day-detail','detail-date','detail-content','close-detail',
+     'flow-mode-btn','flow-mode-area','flow-text','flow-core-tasks',
+     'quick-paste-btn','radar-parser','radar-paste-input','radar-parse-btn','radar-parser-cancel-btn',
      'add-radar-btn','radar-form','radar-title','radar-tags','radar-body','radar-insight',
      'radar-save-btn','radar-cancel-btn','radar-promote-btn','radar-search','radar-search-btn','radar-list',
+     'promote-modal','promote-options','promote-custom','promote-confirm-btn','promote-cancel-btn',
      'add-core-btn','core-form','core-paper','core-status','core-tags',
      'core-application','core-critique','core-notes',
      'core-save-btn','core-cancel-btn','core-search','core-search-btn','core-list'
@@ -158,10 +165,13 @@ async function loadDate(date){
     D.current_date_display.textContent=kd(currentDate);
 
     var saved=await DataService.getDailyData(ds);
-    currentData=saved||{tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:''};
+    currentData=saved||{tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
     if(currentData.note&&!currentData.diary)currentData.diary=currentData.note;
     if(!currentData.paper_log)currentData.paper_log={what:'',result:'',idea:'',tags:''};
 
+    // Restore flow mode
+    flowMode=!!currentData.flow_mode;
+    applyFlowMode();
     renderModes();
     D.daily_diary.value=currentData.diary||'';
     D.daily_memo.value=currentData.memo||'';
@@ -191,16 +201,34 @@ function setupEvents(){
         else if(e.key==='ArrowRight'){var d2=new Date(currentDate);d2.setDate(d2.getDate()+1);loadDate(d2)}
     });
 
+    // Flow Mode
+    D.flow_mode_btn.addEventListener('click',function(){
+        flowMode=!flowMode;
+        currentData.flow_mode=flowMode;
+        applyFlowMode();
+        save();
+    });
+    D.flow_text.addEventListener('input',function(e){currentData.flow_text=e.target.value;save()});
+
     // Calendar
     D.prev_month.addEventListener('click',function(){calendarDate.setMonth(calendarDate.getMonth()-1);renderCalendar()});
     D.next_month.addEventListener('click',function(){calendarDate.setMonth(calendarDate.getMonth()+1);renderCalendar()});
     D.close_detail.addEventListener('click',function(){D.day_detail.style.display='none'});
+
+    // Track A: Radar - Quick Paste Parser
+    D.quick_paste_btn.addEventListener('click',function(){D.radar_parser.style.display='block';D.radar_paste_input.value='';D.radar_paste_input.focus()});
+    D.radar_parser_cancel_btn.addEventListener('click',function(){D.radar_parser.style.display='none'});
+    D.radar_parse_btn.addEventListener('click',parseAndFillRadar);
 
     // Track A: Radar
     D.add_radar_btn.addEventListener('click',function(){D.radar_form.style.display='block';D.radar_form._editId=null;clearRadarForm()});
     D.radar_cancel_btn.addEventListener('click',function(){D.radar_form.style.display='none'});
     D.radar_save_btn.addEventListener('click',saveRadarEntry);
     D.radar_promote_btn.addEventListener('click',promoteRadarToCore);
+
+    // Promote Modal
+    D.promote_cancel_btn.addEventListener('click',function(){D.promote_modal.style.display='none'});
+    D.promote_confirm_btn.addEventListener('click',confirmPromotion);
     D.radar_search_btn.addEventListener('click',function(){loadRadarList(D.radar_search.value)});
     D.radar_search.addEventListener('keydown',function(e){if(e.key==='Enter')loadRadarList(e.target.value)});
 
@@ -268,7 +296,8 @@ function renderModes(){
         mode.tasks.forEach(function(task){
             var ic=!!currentData.tasks[task.id];
             var isAlt=!!currentData.tasks[task.id+'_alt'];
-            var el=document.createElement('div');el.className='task-item'+(ic?' checked':'');
+            var isCore=CORE_TASK_IDS.indexOf(task.id)>=0;
+            var el=document.createElement('div');el.className='task-item'+(ic?' checked':'')+(isCore?' core-task':'');
 
             var cb=document.createElement('div');cb.className='checkbox';
             cb.innerHTML='<span class="checkbox-inner">✔</span>';
@@ -330,6 +359,114 @@ function renderModes(){
     });
 }
 
+// ===== FLOW MODE =====
+function applyFlowMode(){
+    D.flow_mode_btn.classList.toggle('active',flowMode);
+    D.flow_mode_area.style.display=flowMode?'block':'none';
+    D.mode_container.style.display=flowMode?'none':'';
+    if(flowMode){
+        D.flow_text.value=currentData.flow_text||'';
+        renderFlowCoreTasks();
+    }
+}
+
+function renderFlowCoreTasks(){
+    var c=D.flow_core_tasks;c.innerHTML='<div style="font-size:0.75rem;font-weight:600;color:var(--text3);margin-bottom:0.4rem">Core 루틴 (이것만이라도!)</div>';
+    MODES.forEach(function(mode){
+        mode.tasks.forEach(function(task){
+            if(CORE_TASK_IDS.indexOf(task.id)<0)return;
+            var ic=!!currentData.tasks[task.id];
+            var el=document.createElement('div');el.className='task-item'+(ic?' checked':'');
+            var cb=document.createElement('div');cb.className='checkbox';cb.innerHTML='<span class="checkbox-inner">✔</span>';
+            var lbl=document.createElement('span');lbl.className='task-label';lbl.textContent=task.label;
+            el.appendChild(cb);el.appendChild(lbl);
+            el.addEventListener('click',function(){currentData.tasks[task.id]=!currentData.tasks[task.id];save();renderFlowCoreTasks()});
+            c.appendChild(el);
+        });
+    });
+}
+
+// ===== AI TEXT PARSER =====
+function parseAndFillRadar(){
+    var raw=D.radar_paste_input.value.trim();
+    if(!raw){return}
+
+    var title='',tags='',body='',lines=raw.split('\n');
+
+    // Try to extract title from ## header or first line with paper name pattern
+    for(var i=0;i<lines.length;i++){
+        var line=lines[i].trim();
+        if(!line)continue;
+        // ## Header style
+        if(/^#{1,3}\s+/.test(line)){title=line.replace(/^#{1,3}\s+/,'').trim();lines.splice(i,1);break}
+        // "제목:" or "논문:" prefix
+        if(/^(제목|논문|Title|Paper)\s*[:：]\s*/i.test(line)){title=line.replace(/^(제목|논문|Title|Paper)\s*[:：]\s*/i,'').trim();lines.splice(i,1);break}
+    }
+    // If no title found, use first non-empty line
+    if(!title){for(var j=0;j<lines.length;j++){if(lines[j].trim()){title=lines[j].trim();lines.splice(j,1);break}}}
+
+    // Extract tags
+    for(var k=0;k<lines.length;k++){
+        var ln=lines[k].trim();
+        if(/^(태그|Tags?|키워드|Keywords?)\s*[:：]\s*/i.test(ln)){
+            tags=ln.replace(/^(태그|Tags?|키워드|Keywords?)\s*[:：]\s*/i,'').trim();
+            lines.splice(k,1);break;
+        }
+    }
+    // Auto-detect hashtags if no explicit tag line
+    if(!tags){
+        var hashTags=[];
+        raw.replace(/#[A-Za-z가-힣_]+/g,function(m){if(hashTags.indexOf(m)<0)hashTags.push(m)});
+        if(hashTags.length)tags=hashTags.join(' ');
+    }
+
+    // Remaining is body
+    body=lines.join('\n').trim();
+
+    // Fill the form
+    D.radar_title.value=title;
+    D.radar_tags.value=tags;
+    D.radar_body.value=body;
+    D.radar_insight.value=''; // User fills this
+    D.radar_parser.style.display='none';
+    D.radar_form.style.display='block';
+    D.radar_form._editId=null;
+
+    // Focus on the insight field so user just types their thought
+    setTimeout(function(){D.radar_insight.focus()},100);
+}
+
+// ===== PROMOTION MODAL =====
+var _promoteItem=null;
+function showPromoteModal(item){
+    _promoteItem=item;
+    D.promote_modal.style.display='flex';
+    D.promote_custom.value='';
+    D.promote_options.querySelectorAll('input[type="checkbox"]').forEach(function(cb){cb.checked=false});
+}
+
+async function confirmPromotion(){
+    if(!_promoteItem)return;
+    var purposes=[];
+    D.promote_options.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb){
+        purposes.push(cb.parentElement.textContent.trim());
+    });
+    var custom=D.promote_custom.value.trim();
+    if(custom)purposes.push(custom);
+
+    var purposeText=purposes.length?'\n\n🎯 목적: '+purposes.join(', '):'';
+
+    await TrackService.save('core_entries',uid(),{
+        paper:_promoteItem.title,status:'reading',tags:_promoteItem.tags||'',
+        application:'',critique:'',
+        notes:'[AI Radar 승격]'+purposeText+'\n\n'+(_promoteItem.body||'')+'\n\n💡 '+(_promoteItem.insight||''),
+        created:new Date().toISOString(),updated:new Date().toISOString()
+    });
+    D.promote_modal.style.display='none';
+    _promoteItem=null;
+    document.querySelector('[data-view="core"]').click();
+}
+
 // ===== SAVE =====
 var saveT;
 function save(){clearTimeout(saveT);saveT=setTimeout(async function(){await DataService.saveDailyData(fmt(currentDate),currentData)},500)}
@@ -358,17 +495,14 @@ async function getRadarById(id){
     return all.find(function(x){return x._id===id});
 }
 
-async function promoteRadarToCore(){
-    var coreData={
-        paper:D.radar_title.value,status:'reading',
-        tags:D.radar_tags.value,application:'',critique:'',
-        notes:'[AI Radar에서 승격]\n\n'+D.radar_body.value+'\n\n💡 인사이트: '+D.radar_insight.value,
-        created:new Date().toISOString(),updated:new Date().toISOString()
-    };
-    await TrackService.save('core_entries',uid(),coreData);
+function promoteRadarToCore(){
+    showPromoteModal({
+        title:D.radar_title.value,
+        tags:D.radar_tags.value,
+        body:D.radar_body.value,
+        insight:D.radar_insight.value
+    });
     D.radar_form.style.display='none';
-    // Switch to core tab
-    document.querySelector('[data-view="core"]').click();
 }
 
 async function loadRadarList(query){
@@ -418,14 +552,7 @@ async function loadRadarList(query){
             D.radar_form.style.display='block';
         });
         var promBtn=document.createElement('button');promBtn.textContent='➡️ Core로';
-        promBtn.addEventListener('click',async function(){
-            await TrackService.save('core_entries',uid(),{
-                paper:item.title,status:'reading',tags:item.tags||'',
-                application:'',critique:'',notes:'[AI Radar 승격]\n\n'+(item.body||'')+'\n\n💡 '+(item.insight||''),
-                created:new Date().toISOString(),updated:new Date().toISOString()
-            });
-            document.querySelector('[data-view="core"]').click();
-        });
+        promBtn.addEventListener('click',function(){showPromoteModal(item)});
         var delBtn=document.createElement('button');delBtn.textContent='삭제';
         delBtn.addEventListener('click',async function(){
             if(confirm('삭제하시겠습니까?')){await TrackService.remove('radar_entries',item._id);loadRadarList(q)}
