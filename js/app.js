@@ -798,13 +798,15 @@ function setupGcalWeek() {
 
 async function renderGcalWeek() {
     if (!D.gcal_week_grid) return;
+
+    D.gcal_week_section.style.display = 'block';
+
     if (typeof fetchGoogleCalendarWeek !== 'function' || !_googleAccessToken) {
-        D.gcal_week_section.style.display = 'none';
+        D.gcal_week_grid.innerHTML = '<div class="gcal-no-auth" style="grid-column:1/-1">Google Calendar 연동 시 일정이 표시됩니다.<br><small>로그아웃 후 재로그인하면 캘린더 권한이 추가됩니다.</small></div>';
         return;
     }
 
-    D.gcal_week_section.style.display = 'block';
-    D.gcal_week_grid.innerHTML = '<div class="gcal-loading">일정 불러오는 중...</div>';
+    D.gcal_week_grid.innerHTML = '<div class="gcal-loading" style="grid-column:1/-1">일정 불러오는 중...</div>';
 
     var pad = function(n) { return String(n).padStart(2, '0'); };
     var sun = new Date(gcalWeekStart);
