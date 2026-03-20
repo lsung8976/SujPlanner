@@ -105,7 +105,7 @@ function cacheDom(){
      'day-detail','detail-date','detail-content','close-detail',
      'flow-mode-btn','flow-mode-area','flow-text','flow-core-tasks',
      'quick-paste-btn','radar-parser','radar-paste-input','radar-parse-btn','radar-parser-cancel-btn',
-     'add-radar-btn','radar-form','radar-title','radar-tags','radar-body','radar-insight',
+     'add-radar-btn','radar-form','radar-title','radar-authors','radar-year','radar-venue','radar-tags','radar-body','radar-insight',
      'radar-save-btn','radar-cancel-btn','radar-promote-btn','radar-search','radar-search-btn','radar-list',
      'promote-modal','promote-options','promote-custom','promote-confirm-btn','promote-cancel-btn',
      'add-core-btn','core-form','core-paper','core-authors','core-year','core-venue','core-status','core-tags',
@@ -423,8 +423,42 @@ function parseAndFillRadar(){
     // Remaining is body
     body=lines.join('\n').trim();
 
+    // Extract authors
+    var authors='',year='',venue='';
+    for(var a=0;a<lines.length;a++){
+        var la=lines[a].trim();
+        if(/^(저자|Authors?|By)\s*[:：]\s*/i.test(la)){
+            authors=la.replace(/^(저자|Authors?|By)\s*[:：]\s*/i,'').trim();
+            lines.splice(a,1);break;
+        }
+    }
+    // Extract year
+    for(var y=0;y<lines.length;y++){
+        var ly=lines[y].trim();
+        if(/^(연도|Year|Published)\s*[:：]\s*/i.test(ly)){
+            year=ly.replace(/^(연도|Year|Published)\s*[:：]\s*/i,'').trim();
+            lines.splice(y,1);break;
+        }
+    }
+    // Extract venue
+    for(var v=0;v<lines.length;v++){
+        var lv=lines[v].trim();
+        if(/^(저널|학회|Venue|Journal|Conference|Published\s*in)\s*[:：]\s*/i.test(lv)){
+            venue=lv.replace(/^(저널|학회|Venue|Journal|Conference|Published\s*in)\s*[:：]\s*/i,'').trim();
+            lines.splice(v,1);break;
+        }
+    }
+    // Auto-detect year from title if not found
+    if(!year){var ym=title.match(/\b(20\d{2})\b/);if(ym)year=ym[1]}
+
+    // Remaining is body
+    body=lines.join('\n').trim();
+
     // Fill the form
     D.radar_title.value=title;
+    D.radar_authors.value=authors;
+    D.radar_year.value=year;
+    D.radar_venue.value=venue;
     D.radar_tags.value=tags;
     D.radar_body.value=body;
     D.radar_insight.value=''; // User fills this
@@ -457,7 +491,8 @@ async function confirmPromotion(){
     var purposeText=purposes.length?'\n\n🎯 목적: '+purposes.join(', '):'';
 
     await TrackService.save('core_entries',uid(),{
-        paper:_promoteItem.title,status:'reading',tags:_promoteItem.tags||'',
+        paper:_promoteItem.title,authors:_promoteItem.authors||'',year:_promoteItem.year||'',venue:_promoteItem.venue||'',
+        status:'reading',tags:_promoteItem.tags||'',
         application:'',critique:'',
         notes:'[AI Radar 승격]'+purposeText+'\n\n'+(_promoteItem.body||'')+'\n\n💡 '+(_promoteItem.insight||''),
         created:new Date().toISOString(),updated:new Date().toISOString()
@@ -472,12 +507,13 @@ var saveT;
 function save(){clearTimeout(saveT);saveT=setTimeout(async function(){await DataService.saveDailyData(fmt(currentDate),currentData)},500)}
 
 // ===== TRACK A: AI RADAR =====
-function clearRadarForm(){D.radar_title.value='';D.radar_tags.value='';D.radar_body.value='';D.radar_insight.value=''}
+function clearRadarForm(){D.radar_title.value='';D.radar_authors.value='';D.radar_year.value='';D.radar_venue.value='';D.radar_tags.value='';D.radar_body.value='';D.radar_insight.value=''}
 
 async function saveRadarEntry(){
     var id=D.radar_form._editId||uid();
     var data={
-        title:D.radar_title.value,tags:D.radar_tags.value,
+        title:D.radar_title.value,authors:D.radar_authors.value,year:D.radar_year.value,venue:D.radar_venue.value,
+        tags:D.radar_tags.value,
         body:D.radar_body.value,insight:D.radar_insight.value,
         created:D.radar_form._editId?undefined:new Date().toISOString(),
         updated:new Date().toISOString()
@@ -525,6 +561,14 @@ async function loadRadarList(query){
         hdr.innerHTML='<span class="radar-entry-title">'+item.title+'</span><span class="radar-entry-date">'+(item.created||'').substring(0,10)+'</span>';
         entry.appendChild(hdr);
 
+        if(item.authors||item.year||item.venue){
+            var meta=document.createElement('div');meta.className='core-entry-meta';
+            if(item.authors)meta.innerHTML+='<span><span class="core-meta-label">저자</span> '+item.authors+'</span>';
+            if(item.year)meta.innerHTML+='<span><span class="core-meta-label">연도</span> '+item.year+'</span>';
+            if(item.venue)meta.innerHTML+='<span><span class="core-meta-label">저널</span> '+item.venue+'</span>';
+            entry.appendChild(meta);
+        }
+
         if(item.tags){
             var tags=document.createElement('div');tags.className='radar-entry-tags';
             item.tags.split(/[\s,]+/).forEach(function(t){if(!t)return;var sp=document.createElement('span');sp.className='radar-tag';sp.textContent=t;tags.appendChild(sp)});
@@ -547,7 +591,8 @@ async function loadRadarList(query){
         var editBtn=document.createElement('button');editBtn.textContent='수정';
         editBtn.addEventListener('click',function(){
             D.radar_form._editId=item._id;
-            D.radar_title.value=item.title||'';D.radar_tags.value=item.tags||'';
+            D.radar_title.value=item.title||'';D.radar_authors.value=item.authors||'';D.radar_year.value=item.year||'';D.radar_venue.value=item.venue||'';
+            D.radar_tags.value=item.tags||'';
             D.radar_body.value=item.body||'';D.radar_insight.value=item.insight||'';
             D.radar_form.style.display='block';
         });
