@@ -167,6 +167,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 .form-row{margin-bottom:0.75rem}
 .form-row label{display:block;font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:0.25rem}
 .form-row input,.form-row textarea,.form-row select{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.55rem 0.75rem;font-family:inherit;font-size:0.82rem;color:var(--text);transition:border var(--tr)}
+.form-row textarea{min-height:120px;resize:vertical}
 .form-row input:focus,.form-row textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(45,106,79,0.08)}
 .form-row select{cursor:pointer}
 .star-row input{border-color:#fde68a;background:var(--amber-light)}
@@ -305,7 +306,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 .radar-btn-group{display:flex;gap:0.5rem}
 .paste-btn{background:var(--orange)!important}
 .paste-btn:hover{opacity:0.9}
-.parser-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:1rem;color:var(--text);font-family:'Consolas','Courier New',monospace;font-size:0.8rem;line-height:1.7;resize:vertical;transition:border var(--tr)}
+.parser-textarea{width:100%;min-height:200px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:1rem;color:var(--text);font-family:'Consolas','Courier New',monospace;font-size:0.8rem;line-height:1.7;resize:vertical;transition:border var(--tr)}
 .parser-textarea:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(234,88,12,0.1)}
 
 /* PROMOTION MODAL */
