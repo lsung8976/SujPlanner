@@ -1,3 +1,35 @@
+// ===== SIMPLE MARKDOWN RENDERER =====
+function renderMd(text){
+    if(!text)return '';
+    // Escape HTML
+    var s=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // Headings: ### → h4, ## → h3 (small headings for inside cards)
+    s=s.replace(/^### (.+)$/gm,'<h4 class="md-h3">$1</h4>');
+    s=s.replace(/^## (.+)$/gm,'<h3 class="md-h2">$1</h3>');
+    // Bold: **text**
+    s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    // Italic: *text*
+    s=s.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g,'<em>$1</em>');
+    // Inline code: `text`
+    s=s.replace(/`([^`]+)`/g,'<code class="md-code">$1</code>');
+    // Bullet list: - item or * item
+    s=s.replace(/^[\-\*] (.+)$/gm,'<li>$1</li>');
+    s=s.replace(/(<li>.*<\/li>\n?)+/g,'<ul class="md-list">$&</ul>');
+    // Numbered list: 1. item
+    s=s.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+    // Horizontal rule: ---
+    s=s.replace(/^---$/gm,'<hr class="md-hr">');
+    // Arrow/dash labels: What:, Result:, Idea: etc.
+    s=s.replace(/^(What|Result|Idea|무엇을|결과|내 생각|핵심|문제 정의|핵심 주장|요약|방법론|한계점|적용점)(\s*[:：])/gm,'<strong class="md-label">$1$2</strong>');
+    // Line breaks: \n → <br> (but not inside already-created tags)
+    s=s.replace(/\n/g,'<br>');
+    // Clean up double <br> after block elements
+    s=s.replace(/(<\/h[34]>)<br>/g,'$1');
+    s=s.replace(/(<\/ul>)<br>/g,'$1');
+    s=s.replace(/(<hr[^>]*>)<br>/g,'$1');
+    return s;
+}
+
 // ===== HANJA DB =====
 var HANJA_DB=[{char:'學',reading:'배울 학',meaning:'learn',detail:'學而時習之 不亦說乎'},{char:'問',reading:'물을 문',meaning:'ask',detail:'不恥下問'},{char:'知',reading:'알 지',meaning:'know',detail:'知之爲知之 不知爲不知 是知也'},{char:'信',reading:'믿을 신',meaning:'trust',detail:'人無信不立'},{char:'忍',reading:'참을 인',meaning:'endure',detail:'小不忍則亂大謀'},{char:'志',reading:'뜻 지',meaning:'will',detail:'有志者事竟成'},{char:'德',reading:'큰 덕',meaning:'virtue',detail:'厚德載物'},{char:'勤',reading:'부지런할 근',meaning:'diligent',detail:'業精於勤'},{char:'道',reading:'길 도',meaning:'way',detail:'道可道非常道'},{char:'仁',reading:'어질 인',meaning:'benevolence',detail:'仁者愛人'},{char:'義',reading:'옳을 의',meaning:'righteousness',detail:'見義不爲 無勇也'},{char:'禮',reading:'예도 례',meaning:'propriety',detail:'禮之用 和爲貴'},{char:'智',reading:'슬기 지',meaning:'wisdom',detail:'智者不惑'},{char:'誠',reading:'정성 성',meaning:'sincerity',detail:'誠者天之道也'},{char:'孝',reading:'효도 효',meaning:'filial piety',detail:'百善孝爲先'},{char:'和',reading:'화할 화',meaning:'harmony',detail:'天時不如地利 地利不如人和'},{char:'力',reading:'힘 력',meaning:'power',detail:'盡人事待天命'},{char:'心',reading:'마음 심',meaning:'heart',detail:'以心傳心'},{char:'命',reading:'목숨 명',meaning:'destiny',detail:'安分知命'},{char:'光',reading:'빛 광',meaning:'light',detail:'光陰似箭'},{char:'天',reading:'하늘 천',meaning:'heaven',detail:'天道酬勤'},{char:'敎',reading:'가르칠 교',meaning:'teach',detail:'敎學相長'},{char:'忠',reading:'충성 충',meaning:'loyalty',detail:'忠言逆耳'},{char:'愛',reading:'사랑 애',meaning:'love',detail:'愛人者人恒愛之'},{char:'勇',reading:'날랠 용',meaning:'courage',detail:'勇者不懼'},{char:'書',reading:'글 서',meaning:'write',detail:'讀書百遍其義自見'},{char:'言',reading:'말씀 언',meaning:'word',detail:'言必信 行必果'},{char:'靜',reading:'고요할 정',meaning:'still',detail:'靜以修身'},{char:'樂',reading:'즐길 락',meaning:'joy',detail:'知者樂水 仁者樂山'},{char:'福',reading:'복 복',meaning:'fortune',detail:'積善之家 必有餘慶'},{char:'正',reading:'바를 정',meaning:'correct',detail:'其身正 不令而行'}];
 function getTodayHanja(ds){var dy=Math.floor((new Date(ds)-new Date(ds.split('-')[0],0,0))/864e5);return HANJA_DB[dy%HANJA_DB.length]}
@@ -592,14 +624,14 @@ async function loadRadarList(query){
         }
 
         if(item.body){
-            var body=document.createElement('div');body.className='radar-entry-body';body.textContent=item.body;
+            var body=document.createElement('div');body.className='radar-entry-body';body.innerHTML=renderMd(item.body);
             body.addEventListener('click',function(){body.classList.toggle('expanded')});
             entry.appendChild(body);
         }
 
         if(item.insight){
             var ins=document.createElement('div');ins.className='radar-entry-insight';
-            ins.innerHTML='<strong>🌟 내 생각:</strong> '+item.insight;
+            ins.innerHTML='<strong>🌟 내 생각:</strong> '+renderMd(item.insight);
             entry.appendChild(ins);
         }
 
@@ -684,19 +716,19 @@ async function loadCoreList(query,filter){
 
         if(item.application){
             var sec=document.createElement('div');sec.className='core-section';
-            sec.innerHTML='<div class="core-section-label">내 연구 적용점</div><div class="core-section-text">'+item.application+'</div>';
+            sec.innerHTML='<div class="core-section-label">내 연구 적용점</div><div class="core-section-text">'+renderMd(item.application)+'</div>';
             entry.appendChild(sec);
         }
 
         if(item.critique){
             var cr=document.createElement('div');cr.className='core-section';
-            cr.innerHTML='<div class="core-section-label">한계점 / Critique</div><div class="core-critique-text">'+item.critique+'</div>';
+            cr.innerHTML='<div class="core-section-label">한계점 / Critique</div><div class="core-critique-text">'+renderMd(item.critique)+'</div>';
             entry.appendChild(cr);
         }
 
         if(item.notes){
             var nt=document.createElement('div');nt.className='core-section';
-            nt.innerHTML='<div class="core-section-label">핵심 메모</div><div class="core-section-text">'+item.notes+'</div>';
+            nt.innerHTML='<div class="core-section-label">핵심 메모</div><div class="core-section-text">'+renderMd(item.notes)+'</div>';
             entry.appendChild(nt);
         }
 
@@ -760,7 +792,7 @@ function showDetail(ds,data){
         ['what','result','idea'].forEach(function(k){if(data.paper_log[k])ld.innerHTML+='<div class="archive-row"><span class="archive-row-label">'+k+'</span><span>'+data.paper_log[k]+'</span></div>'});
         D.detail_content.appendChild(ld);
     }
-    if(data.radar_insight){var ri=document.createElement('div');ri.className='radar-entry-insight';ri.innerHTML='<strong>🌟</strong> '+data.radar_insight;D.detail_content.appendChild(ri)}
+    if(data.radar_insight){var ri=document.createElement('div');ri.className='radar-entry-insight';ri.innerHTML='<strong>🌟</strong> '+renderMd(data.radar_insight);D.detail_content.appendChild(ri)}
     var diary=data.diary||data.note||'';if(diary.trim()){var dd2=document.createElement('div');dd2.className='detail-diary';dd2.textContent=diary;D.detail_content.appendChild(dd2)}
     if(data.hanja_char){var hd=document.createElement('div');hd.className='detail-hanja';hd.innerHTML='<strong>'+data.hanja_char+'</strong> '+(data.hanja_reading||'')+(data.hanja_note?' — '+data.hanja_note:'');D.detail_content.appendChild(hd)}
     D.day_detail.style.display='block';
