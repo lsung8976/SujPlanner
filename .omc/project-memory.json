@@ -54,20 +54,20 @@
   "hotPaths": [
     {
       "path": "js\\app.js",
-      "accessCount": 22,
-      "lastAccessed": 1773904520087,
+      "accessCount": 27,
+      "lastAccessed": 1773987109203,
       "type": "file"
     },
     {
       "path": "index.html",
-      "accessCount": 6,
-      "lastAccessed": 1773904366884,
+      "accessCount": 7,
+      "lastAccessed": 1773987047499,
       "type": "file"
     },
     {
       "path": "css\\style.css",
-      "accessCount": 3,
-      "lastAccessed": 1773904391834,
+      "accessCount": 5,
+      "lastAccessed": 1773987067425,
       "type": "file"
     },
     {
@@ -80,6 +80,12 @@
       "path": "README.md",
       "accessCount": 2,
       "lastAccessed": 1773976390547,
+      "type": "file"
+    },
+    {
+      "path": "js\\migrate-notion.js",
+      "accessCount": 2,
+      "lastAccessed": 1773987216471,
       "type": "file"
     }
   ],

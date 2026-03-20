@@ -108,7 +108,7 @@ function cacheDom(){
      'add-radar-btn','radar-form','radar-title','radar-tags','radar-body','radar-insight',
      'radar-save-btn','radar-cancel-btn','radar-promote-btn','radar-search','radar-search-btn','radar-list',
      'promote-modal','promote-options','promote-custom','promote-confirm-btn','promote-cancel-btn',
-     'add-core-btn','core-form','core-paper','core-status','core-tags',
+     'add-core-btn','core-form','core-paper','core-authors','core-year','core-venue','core-status','core-tags',
      'core-application','core-critique','core-notes',
      'core-save-btn','core-cancel-btn','core-search','core-search-btn','core-list'
     ].forEach(function(id){ D[id.replace(/-/g,'_')]=document.getElementById(id); });
@@ -565,12 +565,13 @@ async function loadRadarList(query){
 }
 
 // ===== TRACK B: CORE RESEARCH =====
-function clearCoreForm(){D.core_paper.value='';D.core_status.value='reading';D.core_tags.value='';D.core_application.value='';D.core_critique.value='';D.core_notes.value=''}
+function clearCoreForm(){D.core_paper.value='';D.core_authors.value='';D.core_year.value='';D.core_venue.value='';D.core_status.value='reading';D.core_tags.value='';D.core_application.value='';D.core_critique.value='';D.core_notes.value=''}
 
 async function saveCoreEntry(){
     var id=D.core_form._editId||uid();
     var data={
-        paper:D.core_paper.value,status:D.core_status.value,
+        paper:D.core_paper.value,authors:D.core_authors.value,year:D.core_year.value,venue:D.core_venue.value,
+        status:D.core_status.value,
         tags:D.core_tags.value,application:D.core_application.value,
         critique:D.core_critique.value,notes:D.core_notes.value,
         created:D.core_form._editId?undefined:new Date().toISOString(),
@@ -606,6 +607,14 @@ async function loadCoreList(query,filter){
         badge.textContent=statusMap[item.status]||item.status;
         hdr.appendChild(title);hdr.appendChild(badge);entry.appendChild(hdr);
 
+        if(item.authors||item.year||item.venue){
+            var meta=document.createElement('div');meta.className='core-entry-meta';
+            if(item.authors)meta.innerHTML+='<span><span class="core-meta-label">저자</span> '+item.authors+'</span>';
+            if(item.year)meta.innerHTML+='<span><span class="core-meta-label">연도</span> '+item.year+'</span>';
+            if(item.venue)meta.innerHTML+='<span><span class="core-meta-label">저널</span> '+item.venue+'</span>';
+            entry.appendChild(meta);
+        }
+
         if(item.tags){
             var tags=document.createElement('div');tags.className='core-entry-tags';
             item.tags.split(/[\s,]+/).forEach(function(t){if(!t)return;var sp=document.createElement('span');sp.className='core-tag';sp.textContent=t;tags.appendChild(sp)});
@@ -634,7 +643,8 @@ async function loadCoreList(query,filter){
         var editBtn=document.createElement('button');editBtn.textContent='수정';
         editBtn.addEventListener('click',function(){
             D.core_form._editId=item._id;
-            D.core_paper.value=item.paper||'';D.core_status.value=item.status||'reading';
+            D.core_paper.value=item.paper||'';D.core_authors.value=item.authors||'';D.core_year.value=item.year||'';D.core_venue.value=item.venue||'';
+            D.core_status.value=item.status||'reading';
             D.core_tags.value=item.tags||'';D.core_application.value=item.application||'';
             D.core_critique.value=item.critique||'';D.core_notes.value=item.notes||'';
             D.core_form.style.display='block';

@@ -1,7 +1,10 @@
-// Notion 논문 정리 → Core Research 마이그레이션
+// Notion 논문 정리 → Core Research 마이그레이션 (v3: 저자/연도/저널 포함)
 var NOTION_PAPERS = [
     {
         paper: "Efficient Memory Management for LLM Serving with PagedAttention (vLLM)",
+        authors: "Kwon, W. et al.",
+        year: "2023",
+        venue: "SOSP 2023",
         status: "cited",
         tags: "#KV_Cache #LLM_Serving #OS #vLLM #PagedAttention #Memory",
         application: "OS의 Virtual Memory Paging 기법을 KV 캐시 관리에 적용. 내 연구의 OS-기반 LLM 메모리 관리 접근법의 기초가 되는 핵심 논문.",
@@ -11,6 +14,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "MemGPT: Towards LLMs as Operating System",
+        authors: "Packer, C. et al.",
+        year: "2023",
+        venue: "Arxiv (NeurIPS 2023 Workshop)",
         status: "reading",
         tags: "#LLM_OS #Memory_Management #Context_Window #HierarchicalMemory",
         application: "LLM이 자체 메모리를 자율적으로 관리하는 구조. 내 연구의 'LLM as OS' 비전과 직접 연결. 계층적 메모리 구조(Main/Disk)를 LLM에 적용한 아이디어 차용 가능.",
@@ -20,6 +26,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "DistServe: Disaggregated Prefill-Decode LLM Serving",
+        authors: "Zhong, Y. et al.",
+        year: "2024",
+        venue: "OSDI 2024",
         status: "cited",
         tags: "#LLM_Serving #PD_Disaggregation #Distributed #GPU_Scheduling #RL",
         application: "Prefill/Decode 분리 서빙의 기본 프레임워크. 이기종 GPU 그룹(메모리 적합→Decode, 연산 적합→Prefill, 유연한 고성능→플렉시블)으로 나누고 RL로 동적 할당하는 아이디어의 출발점.",
@@ -29,6 +38,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "Splitwise: Efficient Generative LLM Serving with Phase Splitting",
+        authors: "Patel, P. et al.",
+        year: "2024",
+        venue: "ISCA 2024",
         status: "reading",
         tags: "#LLM_Serving #PD_Split #Scheduler #KV_Cache_Transfer #Cluster",
         application: "Prompt/Token Pool + Mixed Pool 관리 스케줄러 설계가 내 연구의 스케줄링 레이어에 참고 가능. KV-Cache 전송 방법론 상세 서술이 유용.",
@@ -38,6 +50,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving",
+        authors: "Qin, R. et al. (Moonshot AI)",
+        year: "2024",
+        venue: "Arxiv",
         status: "cited",
         tags: "#KV_Cache #Distributed_Storage #RDMA #PD_Disaggregation #Scheduler #Mooncake",
         application: "분산 자원(CPU, DRAM, SSD, RDMA)을 통합한 KVCache 저장소(Mooncake Store) 구축이 핵심. 내 연구는 이를 확장하여 '분산된 자원을 하나로 합치는' 방향으로 기여 가능.",
@@ -47,6 +62,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "semi-PD: Towards Efficient LLM Serving via Phase-wise Disaggregated Computation and Unified Storage",
+        authors: "Liu, H. et al.",
+        year: "2024",
+        venue: "Arxiv",
         status: "reading",
         tags: "#PD_Disaggregation #SM_Partitioning #Unified_Memory #LLM_Serving",
         application: "Unified Memory Manager + Computational Resource Controller로 전체 GPU SM을 Prefill/Decode에 동적 분배. Elastic Buffer 개념이 내 연구의 자원 관리 레이어에 적용 가능.",
@@ -56,6 +74,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU",
+        authors: "Sheng, Y. et al.",
+        year: "2023",
+        venue: "ICML 2023",
         status: "reading",
         tags: "#Offloading #Single_GPU #KV_Cache #Quantization #Throughput #Memory",
         application: "제한된 GPU 환경에서의 메모리 관리 전략. 지그재그 스케줄링으로 가중치/KV Cache 업로드/오프로딩 병목 최소화. 내 연구의 메모리 계층 활용 전략에 참고.",
@@ -65,6 +86,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "Helix: Serving LLMs over Heterogeneous GPUs and Network via Max-Flow",
+        authors: "Mei, X. et al.",
+        year: "2025",
+        venue: "EuroSys 2025",
         status: "reading",
         tags: "#Heterogeneous_GPU #Max_Flow #MILP #Pipeline_Parallelism #LLM_Serving #Low_Cost",
         application: "이기종 분산 GPU 환경에서 Max-Flow 공식화로 최적 모델 배치. L4 같은 저비용 GPU 조합이 H100급 성능 달성. 내 연구의 이기종 자원 활용 + 비용 최적화에 직접 적용 가능.",
@@ -74,6 +98,9 @@ var NOTION_PAPERS = [
     },
     {
         paper: "SpotServe: Serving Generative LLMs on Preemptible Instances",
+        authors: "Miao, X. et al.",
+        year: "2024",
+        venue: "ASPLOS 2024",
         status: "reading",
         tags: "#Preemptible_GPU #Dynamic_Reparallelization #Migration #Cost_Optimization #LLM_Serving",
         application: "Preemptible GPU의 동적 재병렬화 + 마이그레이션 비용 수식화. 내 연구의 동적 자원 할당 및 장애 복구 전략에 참고 가능.",
@@ -82,7 +109,10 @@ var NOTION_PAPERS = [
         created: "2025-12-30T00:00:00.000Z"
     },
     {
-        paper: "ReKV: Real-time Streaming Video Understanding with KV Cache Retrieval (ICLR 2025)",
+        paper: "ReKV: Real-time Streaming Video Understanding with KV Cache Retrieval",
+        authors: "Shi, Y. et al.",
+        year: "2025",
+        venue: "ICLR 2025",
         status: "reading",
         tags: "#Video_LLM #KV_Cache #Streaming #Real_Time #VQA",
         application: "비디오 스트리밍 LLM에서의 KV Cache 실시간 관리. 코사인 유사도 기반 어텐션 계산이 내 연구의 실시간 캐시 관리 전략에 참고 가능.",
@@ -91,7 +121,10 @@ var NOTION_PAPERS = [
         created: "2026-01-20T00:00:00.000Z"
     },
     {
-        paper: "Cutting is All You Need: Execution of Large-Scale QNN on Limited-Qubit Device (IEEE QAI 2025)",
+        paper: "Cutting is All You Need: Execution of Large-Scale QNN on Limited-Qubit Device",
+        authors: "Lee, S. et al.",
+        year: "2025",
+        venue: "IEEE QAI 2025",
         status: "reading",
         tags: "#Quantum #Circuit_Cutting #HQNN #Backpropagation #Limited_Qubit",
         application: "N큐빗 회로를 M큐빗 디바이스에서 실행하는 cutting 방법. 양자 컴퓨팅의 자원 제약 해결 관점에서 LLM 서빙의 GPU 자원 제약 문제와 유사한 접근.",
@@ -101,19 +134,22 @@ var NOTION_PAPERS = [
     }
 ];
 
-// Migration
+// Migration v3: 저자/연도/저널 포함
 (async function() {
-    var migrated = localStorage.getItem('suj_notion_migrated_v2');
+    var migrated = localStorage.getItem('suj_notion_migrated_v3');
     if (migrated) return;
 
-    console.log('Migrating Notion paper data to Core Research...');
+    console.log('Migrating Notion paper data to Core Research (v3 with authors/year/venue)...');
     var count = 0;
 
     for (var i = 0; i < NOTION_PAPERS.length; i++) {
         var p = NOTION_PAPERS[i];
-        var id = 'notion_' + Date.now().toString(36) + '_' + i;
+        var id = 'notion_v3_' + Date.now().toString(36) + '_' + i;
         var data = {
             paper: p.paper,
+            authors: p.authors,
+            year: p.year,
+            venue: p.venue,
             status: p.status,
             tags: p.tags,
             application: p.application,
@@ -127,6 +163,14 @@ var NOTION_PAPERS = [
         count++;
     }
 
-    localStorage.setItem('suj_notion_migrated_v2', 'true');
-    console.log('Notion migration complete: ' + count + ' papers imported to Core Research.');
+    // Clean up old v2 entries
+    var oldItems = await TrackService.getAll('core_entries');
+    for (var j = 0; j < oldItems.length; j++) {
+        if (oldItems[j]._id && oldItems[j]._id.indexOf('notion_') === 0 && oldItems[j]._id.indexOf('notion_v3_') !== 0) {
+            await TrackService.remove('core_entries', oldItems[j]._id);
+        }
+    }
+
+    localStorage.setItem('suj_notion_migrated_v3', 'true');
+    console.log('Notion migration v3 complete: ' + count + ' papers with authors/year/venue.');
 })();
