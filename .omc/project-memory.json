@@ -54,26 +54,26 @@
   "hotPaths": [
     {
       "path": "js\\app.js",
-      "accessCount": 34,
-      "lastAccessed": 1773987447928,
+      "accessCount": 38,
+      "lastAccessed": 1773988179578,
       "type": "file"
     },
     {
       "path": "index.html",
-      "accessCount": 9,
-      "lastAccessed": 1773987780782,
+      "accessCount": 13,
+      "lastAccessed": 1773988097961,
       "type": "file"
     },
     {
       "path": "css\\style.css",
-      "accessCount": 5,
-      "lastAccessed": 1773987067425,
+      "accessCount": 6,
+      "lastAccessed": 1773988115232,
       "type": "file"
     },
     {
       "path": "js\\firebase-config.js",
-      "accessCount": 2,
-      "lastAccessed": 1773903923077,
+      "accessCount": 3,
+      "lastAccessed": 1773988138139,
       "type": "file"
     },
     {

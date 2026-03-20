@@ -14,12 +14,19 @@ var firebaseConfig = {
 };
 
 var db = null;
+var auth = null;
 var isFirebaseConfigured = false;
+var currentUser = null;
+var _googleAccessToken = null;
+
+// Allowed user emails (add your email here to restrict access)
+var ALLOWED_EMAILS = ['lsung8976@gmail.com'];
 
 try {
     if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        auth = firebase.auth();
         isFirebaseConfigured = true;
         console.log("Firebase initialized successfully.");
     } else {
@@ -27,6 +34,107 @@ try {
     }
 } catch (e) {
     console.error("Firebase initialization error:", e);
+}
+
+// ===== AUTH =====
+var googleProvider = null;
+if (auth) {
+    googleProvider = new firebase.auth.GoogleAuthProvider();
+    googleProvider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+}
+
+function setupAuth() {
+    var loginOverlay = document.getElementById('login-overlay');
+    var loginBtn = document.getElementById('google-login-btn');
+    var logoutBtn = document.getElementById('logout-btn');
+    var userInfo = document.getElementById('user-info');
+    var userAvatar = document.getElementById('user-avatar');
+    var userName = document.getElementById('user-name');
+
+    if (!auth) {
+        // No auth configured, skip login
+        loginOverlay.classList.add('hidden');
+        return;
+    }
+
+    loginBtn.addEventListener('click', function() {
+        auth.signInWithPopup(googleProvider).then(function(result) {
+            _googleAccessToken = result.credential.accessToken;
+        }).catch(function(error) {
+            console.error('Login error:', error);
+            alert('로그인 실패: ' + error.message);
+        });
+    });
+
+    logoutBtn.addEventListener('click', function() {
+        auth.signOut();
+    });
+
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            // Check if allowed
+            if (ALLOWED_EMAILS.length > 0 && ALLOWED_EMAILS.indexOf(user.email) < 0) {
+                alert('접근 권한이 없습니다: ' + user.email);
+                auth.signOut();
+                return;
+            }
+
+            currentUser = user;
+            loginOverlay.classList.add('hidden');
+            userInfo.style.display = 'flex';
+            userAvatar.src = user.photoURL || '';
+            userName.textContent = user.displayName || user.email;
+
+            // Init app after login
+            if (typeof init === 'function') init();
+        } else {
+            currentUser = null;
+            _googleAccessToken = null;
+            loginOverlay.classList.remove('hidden');
+            userInfo.style.display = 'none';
+        }
+    });
+}
+
+// Google Calendar API
+async function fetchGoogleCalendarEvents(dateStr) {
+    if (!_googleAccessToken) return [];
+
+    var dayStart = new Date(dateStr + 'T00:00:00').toISOString();
+    var dayEnd = new Date(dateStr + 'T23:59:59').toISOString();
+
+    try {
+        var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+            + '?timeMin=' + encodeURIComponent(dayStart)
+            + '&timeMax=' + encodeURIComponent(dayEnd)
+            + '&singleEvents=true&orderBy=startTime&maxResults=20';
+
+        var resp = await fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + _googleAccessToken }
+        });
+
+        if (!resp.ok) {
+            console.warn('Calendar API error:', resp.status);
+            return [];
+        }
+
+        var data = await resp.json();
+        return (data.items || []).map(function(ev) {
+            var start = ev.start.dateTime || ev.start.date;
+            var end = ev.end.dateTime || ev.end.date;
+            var timeStr = '';
+            if (ev.start.dateTime) {
+                timeStr = new Date(start).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+                    + ' - ' + new Date(end).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                timeStr = '종일';
+            }
+            return { title: ev.summary || '(제목 없음)', time: timeStr };
+        });
+    } catch(e) {
+        console.warn('Calendar fetch error:', e);
+        return [];
+    }
 }
 
 // Data Interface - Firebase + LocalStorage fallback + in-memory cache

@@ -102,6 +102,7 @@ function cacheDom(){
      'hanja-char','hanja-reading','hanja-meaning','hanja-detail',
      'hanja-char-input','hanja-reading-input','hanja-note-input',
      'calendar-month-display','prev-month','next-month','calendar-grid',
+     'gcal-events','gcal-list',
      'day-detail','detail-date','detail-content','close-detail',
      'flow-mode-btn','flow-mode-area','flow-text','flow-core-tasks',
      'quick-paste-btn','radar-parser','radar-paste-input','radar-parse-btn','radar-parser-cancel-btn',
@@ -125,7 +126,10 @@ function hideLoading(){
 }
 
 // ===== INIT =====
+var _initialized = false;
 async function init(){
+    if (_initialized) return;
+    _initialized = true;
     cacheDom();
     setupEvents();
     setupTabs();
@@ -135,6 +139,16 @@ async function init(){
     updateSync();
     hideLoading();
 }
+
+// Auth-gated startup
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof setupAuth === 'function' && auth) {
+        setupAuth();
+    } else {
+        // No auth, just init directly
+        init();
+    }
+});
 
 function updateSync(){
     if(isFirebaseConfigured){D.sync_status.textContent='Firebase 연동 중';D.sync_status.style.color='#2d6a4f'}
@@ -748,6 +762,21 @@ function showDetail(ds,data){
     var diary=data.diary||data.note||'';if(diary.trim()){var dd2=document.createElement('div');dd2.className='detail-diary';dd2.textContent=diary;D.detail_content.appendChild(dd2)}
     if(data.hanja_char){var hd=document.createElement('div');hd.className='detail-hanja';hd.innerHTML='<strong>'+data.hanja_char+'</strong> '+(data.hanja_reading||'')+(data.hanja_note?' — '+data.hanja_note:'');D.detail_content.appendChild(hd)}
     D.day_detail.style.display='block';
+
+    // Google Calendar events
+    if(typeof fetchGoogleCalendarEvents==='function'&&_googleAccessToken){
+        D.gcal_events.style.display='block';
+        D.gcal_list.innerHTML='<div class="gcal-empty">일정 불러오는 중...</div>';
+        fetchGoogleCalendarEvents(ds).then(function(events){
+            D.gcal_list.innerHTML='';
+            if(!events.length){D.gcal_list.innerHTML='<div class="gcal-empty">이 날 일정이 없습니다</div>';return}
+            events.forEach(function(ev){
+                var el=document.createElement('div');el.className='gcal-event';
+                el.innerHTML='<span class="gcal-event-time">'+ev.time+'</span><span class="gcal-event-title">'+ev.title+'</span>';
+                D.gcal_list.appendChild(el);
+            });
+        });
+    }
 }
 
 // ===== STATS =====
@@ -802,4 +831,4 @@ function renderDiaryStats(rangeData){
     c.appendChild(dd);
 }
 
-document.addEventListener('DOMContentLoaded',init);
+// Init is now handled by auth-gated startup at top

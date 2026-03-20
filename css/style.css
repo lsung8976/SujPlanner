@@ -321,6 +321,30 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 .modal-custom input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.5rem 0.75rem;font-family:inherit;font-size:0.82rem;color:var(--text)}
 .modal-custom input:focus{outline:none;border-color:var(--indigo)}
 
+/* LOGIN OVERLAY */
+.login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#f5f5f0 0%,#e8f5e9 100%);display:flex;align-items:center;justify-content:center;z-index:10000}
+.login-overlay.hidden{display:none}
+.login-card{background:var(--card);border-radius:16px;padding:3rem 3.5rem;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1);max-width:400px}
+.login-title{font-size:2rem;font-weight:700;color:var(--green);margin-bottom:0.25rem}
+.login-desc{font-size:0.88rem;color:var(--text2);margin-bottom:2rem}
+.google-login-btn{display:inline-flex;align-items:center;gap:0.75rem;background:#fff;border:2px solid var(--border);padding:0.75rem 2rem;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.95rem;font-weight:600;color:var(--text);transition:all var(--tr);box-shadow:var(--shadow)}
+.google-login-btn:hover{border-color:var(--green);box-shadow:var(--shadow-hover);transform:translateY(-1px)}
+.login-note{font-size:0.7rem;color:var(--text3);margin-top:1.25rem}
+
+/* USER INFO */
+.user-info{display:flex;align-items:center;gap:0.5rem}
+.user-avatar{width:28px;height:28px;border-radius:50%;border:2px solid var(--green-mid)}
+.user-name{font-size:0.75rem;color:var(--text2);font-weight:500;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--text3);padding:0.2rem 0.5rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:0.65rem;transition:all var(--tr)}
+.logout-btn:hover{background:var(--hover);border-color:var(--red);color:var(--red)}
+
+/* GOOGLE CALENDAR EVENTS */
+.gcal-events{max-width:650px;margin:1rem auto 0}
+.gcal-event{display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.75rem;border-radius:var(--rs);margin-bottom:0.35rem;background:var(--input-bg);border-left:3px solid var(--blue)}
+.gcal-event-time{font-size:0.72rem;font-weight:600;color:var(--blue);min-width:90px}
+.gcal-event-title{font-size:0.82rem;color:var(--text);font-weight:500}
+.gcal-empty{font-size:0.82rem;color:var(--text3);padding:0.5rem}
+
 /* LOADING OVERLAY */
 .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(245,245,240,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s ease}
 .loading-overlay.hidden{opacity:0;pointer-events:none}
