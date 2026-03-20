@@ -304,8 +304,22 @@
                 <span class="legend-item"><span class="legend-dot diary-mark"></span>일기</span>
             </div>
             <div class="calendar-grid" id="calendar-grid"></div>
+            <!-- Google Calendar Weekly View -->
+            <div class="gcal-week-section" id="gcal-week-section">
+                <div class="gcal-week-header">
+                    <h3>Google Calendar 일정</h3>
+                    <div class="gcal-week-nav">
+                        <button id="gcal-prev-week" class="nav-btn">&larr;</button>
+                        <span id="gcal-week-label"></span>
+                        <button id="gcal-next-week" class="nav-btn">&rarr;</button>
+                    </div>
+                </div>
+                <div class="gcal-week-grid" id="gcal-week-grid"></div>
+            </div>
+
+            <!-- Day detail (clicked from progress calendar) -->
             <div class="card gcal-events" id="gcal-events" style="display:none;">
-                <div class="card-header"><h3>Google Calendar 일정</h3><span class="badge" style="background:#dbeafe;color:#1d4ed8">연동</span></div>
+                <div class="card-header"><h3>선택한 날 일정</h3><span class="badge" style="background:#dbeafe;color:#1d4ed8">Google</span></div>
                 <div id="gcal-list"></div>
             </div>
             <div class="card day-detail" id="day-detail" style="display:none;">

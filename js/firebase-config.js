@@ -138,6 +138,63 @@ async function fetchGoogleCalendarEvents(dateStr) {
     }
 }
 
+async function fetchGoogleCalendarWeek(startDate) {
+    if (!_googleAccessToken) return {};
+
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    var start = new Date(startDate);
+    start.setDate(start.getDate() - start.getDay()); // Sunday
+    var end = new Date(start);
+    end.setDate(end.getDate() + 7);
+
+    var timeMin = start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate())+'T00:00:00';
+    var timeMax = end.getFullYear()+'-'+pad(end.getMonth()+1)+'-'+pad(end.getDate())+'T00:00:00';
+
+    try {
+        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul';
+        var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+            + '?timeMin=' + encodeURIComponent(timeMin + '+09:00')
+            + '&timeMax=' + encodeURIComponent(timeMax + '+09:00')
+            + '&singleEvents=true&orderBy=startTime&maxResults=50'
+            + '&timeZone=' + encodeURIComponent(tz);
+
+        var resp = await fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + _googleAccessToken }
+        });
+
+        if (!resp.ok) return {};
+
+        var data = await resp.json();
+        var byDay = {};
+
+        (data.items || []).forEach(function(ev) {
+            var evStart = ev.start.dateTime || ev.start.date;
+            var dayKey = evStart.substring(0, 10);
+            if (!byDay[dayKey]) byDay[dayKey] = [];
+
+            var timeStr = '';
+            var allDay = false;
+            if (ev.start.dateTime) {
+                timeStr = new Date(ev.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                timeStr = '종일';
+                allDay = true;
+            }
+
+            byDay[dayKey].push({
+                title: ev.summary || '(제목 없음)',
+                time: timeStr,
+                allDay: allDay
+            });
+        });
+
+        return byDay;
+    } catch(e) {
+        console.warn('Calendar week fetch error:', e);
+        return {};
+    }
+}
+
 // Data Interface - Firebase + LocalStorage fallback + in-memory cache
 var _cache = {};
 

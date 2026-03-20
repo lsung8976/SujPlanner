@@ -338,7 +338,26 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 .logout-btn{background:none;border:1px solid var(--border);color:var(--text3);padding:0.2rem 0.5rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:0.65rem;transition:all var(--tr)}
 .logout-btn:hover{background:var(--hover);border-color:var(--red);color:var(--red)}
 
-/* GOOGLE CALENDAR EVENTS */
+/* GOOGLE CALENDAR WEEKLY VIEW */
+.gcal-week-section{max-width:650px;margin:1.5rem auto 0;background:var(--card);border:1px solid var(--border-light);border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow)}
+.gcal-week-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.gcal-week-header h3{font-size:0.95rem;font-weight:600;color:var(--blue)}
+.gcal-week-nav{display:flex;align-items:center;gap:0.75rem}
+.gcal-week-nav span{font-size:0.82rem;font-weight:500;color:var(--text2);min-width:140px;text-align:center}
+.gcal-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.gcal-day-col{min-height:80px}
+.gcal-day-col-header{font-size:0.68rem;font-weight:600;color:var(--text3);text-align:center;padding-bottom:0.35rem;border-bottom:2px solid var(--border-light);margin-bottom:0.35rem}
+.gcal-day-col-header.today{color:var(--green);border-bottom-color:var(--green)}
+.gcal-day-col-header.sun{color:var(--red)}
+.gcal-day-col-header.sat{color:var(--blue)}
+.gcal-mini-event{background:var(--blue-light);border-left:2px solid var(--blue);border-radius:4px;padding:3px 6px;margin-bottom:3px;cursor:default}
+.gcal-mini-event-time{font-size:0.58rem;color:var(--blue);font-weight:600}
+.gcal-mini-event-title{font-size:0.65rem;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcal-mini-allday{background:#dbeafe;border-left-color:var(--indigo)}
+.gcal-day-empty{font-size:0.6rem;color:var(--border);text-align:center;padding-top:0.5rem}
+.gcal-loading{text-align:center;padding:1.5rem;color:var(--text3);font-size:0.82rem}
+
+/* GOOGLE CALENDAR DAY EVENTS (detail) */
 .gcal-events{max-width:650px;margin:1rem auto 0}
 .gcal-event{display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.75rem;border-radius:var(--rs);margin-bottom:0.35rem;background:var(--input-bg);border-left:3px solid var(--blue)}
 .gcal-event-time{font-size:0.72rem;font-weight:600;color:var(--blue);min-width:90px}

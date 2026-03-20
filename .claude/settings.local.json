@@ -7,7 +7,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(gh --version)"
+      "Bash(gh --version)",
+      "Bash(pkill -f \"python -m http.server\")",
+      "Bash(pkill -f \"python3 -m http.server\")"
     ]
   }
 }

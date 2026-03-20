@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"python3 -m http.server 8080 &\\nsleep 2\\ncurl -s -o /dev/null -w \\\"%{http_code}\\\" http://localhost:8080/\",\"timeout\":10000,\"description\":\"Start server from project dir and verify\"}",
+  "error": "Exit code 7\nPython 000",
+  "timestamp": "2026-03-20T06:41:33.679Z",
+  "retry_count": 1
+}

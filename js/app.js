@@ -102,6 +102,7 @@ function cacheDom(){
      'hanja-char','hanja-reading','hanja-meaning','hanja-detail',
      'hanja-char-input','hanja-reading-input','hanja-note-input',
      'calendar-month-display','prev-month','next-month','calendar-grid',
+     'gcal-week-section','gcal-week-grid','gcal-week-label','gcal-prev-week','gcal-next-week',
      'gcal-events','gcal-list',
      'day-detail','detail-date','detail-content','close-detail',
      'flow-mode-btn','flow-mode-area','flow-text','flow-core-tasks',
@@ -133,6 +134,7 @@ async function init(){
     cacheDom();
     setupEvents();
     setupTabs();
+    setupGcalWeek();
     showLoading('오늘 데이터 불러오는 중...');
     await loadDate(currentDate);
     renderRibbon();
@@ -164,7 +166,7 @@ function setupTabs(){
             tab.classList.add('active');
             document.querySelectorAll('.view').forEach(function(el){el.classList.remove('active')});
             document.getElementById('view-'+v).classList.add('active');
-            if(v==='calendar'){calendarDate=new Date(currentDate);renderCalendar()}
+            if(v==='calendar'){calendarDate=new Date(currentDate);gcalWeekStart=new Date(currentDate);renderCalendar();renderGcalWeek()}
             else if(v==='stats'){renderStats()}
             else if(v==='radar'){loadRadarList('')}
             else if(v==='core'){loadCoreList('','all')}
@@ -776,6 +778,78 @@ function showDetail(ds,data){
                 D.gcal_list.appendChild(el);
             });
         });
+    }
+}
+
+// ===== GOOGLE CALENDAR WEEKLY =====
+var gcalWeekStart = new Date();
+
+function setupGcalWeek() {
+    if (!D.gcal_prev_week) return;
+    D.gcal_prev_week.addEventListener('click', function() {
+        gcalWeekStart.setDate(gcalWeekStart.getDate() - 7);
+        renderGcalWeek();
+    });
+    D.gcal_next_week.addEventListener('click', function() {
+        gcalWeekStart.setDate(gcalWeekStart.getDate() + 7);
+        renderGcalWeek();
+    });
+}
+
+async function renderGcalWeek() {
+    if (!D.gcal_week_grid) return;
+    if (typeof fetchGoogleCalendarWeek !== 'function' || !_googleAccessToken) {
+        D.gcal_week_section.style.display = 'none';
+        return;
+    }
+
+    D.gcal_week_section.style.display = 'block';
+    D.gcal_week_grid.innerHTML = '<div class="gcal-loading">일정 불러오는 중...</div>';
+
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    var sun = new Date(gcalWeekStart);
+    sun.setDate(sun.getDate() - sun.getDay());
+    var endDay = new Date(sun);
+    endDay.setDate(endDay.getDate() + 6);
+
+    D.gcal_week_label.textContent = (sun.getMonth() + 1) + '/' + sun.getDate() + ' - ' + (endDay.getMonth() + 1) + '/' + endDay.getDate();
+
+    var events = await fetchGoogleCalendarWeek(sun);
+
+    D.gcal_week_grid.innerHTML = '';
+    var today = new Date();
+    var dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+    for (var i = 0; i < 7; i++) {
+        var d = new Date(sun);
+        d.setDate(sun.getDate() + i);
+        var ds = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        var isToday = sameDay(d, today);
+
+        var col = document.createElement('div');
+        col.className = 'gcal-day-col';
+
+        var header = document.createElement('div');
+        header.className = 'gcal-day-col-header' + (isToday ? ' today' : '') + (i === 0 ? ' sun' : '') + (i === 6 ? ' sat' : '');
+        header.textContent = dayNames[i] + ' ' + d.getDate();
+        col.appendChild(header);
+
+        var dayEvents = events[ds] || [];
+        if (dayEvents.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'gcal-day-empty';
+            empty.textContent = '-';
+            col.appendChild(empty);
+        } else {
+            dayEvents.forEach(function(ev) {
+                var evEl = document.createElement('div');
+                evEl.className = 'gcal-mini-event' + (ev.allDay ? ' gcal-mini-allday' : '');
+                evEl.innerHTML = '<div class="gcal-mini-event-time">' + ev.time + '</div><div class="gcal-mini-event-title">' + ev.title + '</div>';
+                col.appendChild(evEl);
+            });
+        }
+
+        D.gcal_week_grid.appendChild(col);
     }
 }
 
