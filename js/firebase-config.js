@@ -85,8 +85,9 @@ function setupAuth() {
             userAvatar.src = user.photoURL || '';
             userName.textContent = user.displayName || user.email;
 
-            // Init app after login
+            // Init app after login, then sync
             if (typeof init === 'function') init();
+            if (typeof syncLocalToFirebase === 'function') syncLocalToFirebase();
         } else {
             currentUser = null;
             _googleAccessToken = null;
