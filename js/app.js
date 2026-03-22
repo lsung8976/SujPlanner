@@ -99,8 +99,19 @@ var TrackService = {
         return this.getLocal(collection);
     },
     async save(collection, id, data) {
+        // Remove _id before saving to Firebase (Firestore uses doc ID separately)
+        var cleanData = Object.assign({}, data);
+        delete cleanData._id;
         if (isFirebaseConfigured && db) {
-            try { await db.collection(collection).doc(id).set(data); } catch(e) { console.error(e); }
+            try {
+                await db.collection(collection).doc(id).set(cleanData, {merge: true});
+            } catch(e) {
+                console.error('Firebase save error ('+collection+'/'+id+'):', e);
+                // Show user-visible error for permission issues
+                if (e.code === 'permission-denied') {
+                    console.warn('Firestore 권한 오류: Firebase Console에서 보안 규칙을 확인하세요.');
+                }
+            }
         }
         this.saveLocal(collection, id, data);
     },

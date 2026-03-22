@@ -299,20 +299,20 @@ var DataService = {
 
     async saveDailyData(dateStr, data) {
         _cache[dateStr] = data;
-        if (isFirebaseConfigured && db) {
+        this.saveLocalData(dateStr, data);
+        if (isFirebaseConfigured && db && currentUser) {
             try {
                 await db.collection("daily_routines").doc(dateStr).set(data);
-                this.saveLocalData(dateStr, data);
                 return true;
             } catch (e) {
-                console.error("Error saving to Firebase", e);
-                this.saveLocalData(dateStr, data);
+                console.error("Error saving to Firebase:", e);
+                if (e.code === 'permission-denied') {
+                    console.warn('Firestore 권한 오류: Firebase Console → Firestore → 규칙에서 만료일을 확인하세요.');
+                }
                 return false;
             }
-        } else {
-            this.saveLocalData(dateStr, data);
-            return true;
         }
+        return true;
     },
 
     getLocalData(dateStr) {
