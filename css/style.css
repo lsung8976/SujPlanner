@@ -138,7 +138,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 /* HANJA */
 .hanja-card{border-left:4px solid var(--amber)}
 .hanja-today{display:flex;align-items:center;gap:1rem;padding:0.6rem;background:linear-gradient(135deg,#fffbeb,#fff8e1);border-radius:var(--rs);margin-bottom:0.6rem}
-.hanja-character{font-family:'Noto Serif KR',serif;font-size:2.8rem;font-weight:900;color:#78350f;min-width:55px;text-align:center}
+.hanja-character{font-family:'Noto Serif KR',serif;font-size:2rem;font-weight:900;color:#78350f;min-width:80px;text-align:center;letter-spacing:0.1em}
 .hanja-info{flex:1}
 .hanja-reading{font-size:0.95rem;font-weight:700;color:#78350f}
 .hanja-meaning{font-size:0.75rem;color:#92400e;margin-bottom:0.15rem}
@@ -147,7 +147,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 .hanja-input-row{display:flex;gap:0.35rem}
 .hanja-input{background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.4rem 0.5rem;font-family:inherit;font-size:0.78rem;color:var(--text);transition:border var(--tr)}
 .hanja-input:focus{outline:none;border-color:var(--amber)}
-.hanja-input.char-input{width:48px;text-align:center;font-family:'Noto Serif KR',serif;font-size:1.3rem;font-weight:700;padding:0.25rem}
+.hanja-input.char-input{width:120px;text-align:center;font-family:'Noto Serif KR',serif;font-size:1.1rem;font-weight:700;padding:0.25rem}
 .hanja-input-row .hanja-input:not(.char-input){flex:1}
 .hanja-input.full{width:100%}
 
