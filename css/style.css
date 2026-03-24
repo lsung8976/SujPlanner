@@ -384,6 +384,29 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{margin-top:1rem;font-size:0.88rem;color:var(--text2);font-weight:500}
 
+/* ===== FLEX TASK (독서 등 선택 항목) ===== */
+.task-item.flex-task{border-left:3px solid var(--text3);padding-left:0.65rem;opacity:0.85}
+.task-item.flex-task .task-label::after{content:'Flex';font-size:0.55rem;font-weight:700;color:var(--text3);background:var(--bg);border:1px solid var(--border);padding:1px 5px;border-radius:3px;margin-left:0.4rem;vertical-align:middle}
+.task-item.flex-task:hover{opacity:1}
+.task-item.flex-task.checked{opacity:1;background:var(--green-light)}
+
+/* ===== DIARY NUDGE ===== */
+.diary-nudge{display:none;margin-top:0.5rem;padding:0.45rem 0.75rem;background:#f0fdf4;border:1px solid #86efac;border-radius:var(--rs);font-size:0.75rem;color:#166534;font-weight:500;text-align:center;transition:all var(--tr)}
+.diary-nudge.visible{display:block;animation:nudgeFadeIn 0.4s ease}
+@keyframes nudgeFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== WEEKEND RECHARGE MODE ===== */
+.weekend-mode-grid{grid-template-columns:1fr !important}
+.mode-block.weekend{border-top:4px solid #0d9488;background:linear-gradient(135deg,#f0fdfa 0%,#ffffff 100%)}
+.funnel-label.recharge{background:#ccfbf1;color:#0d9488;font-size:0.7rem}
+.mode-block.weekend .progress-fill{background:#0d9488}
+.weekend-notice{margin:0.6rem 0 0.75rem;padding:0.55rem 0.75rem;background:#f0fdfa;border:1px solid #99f6e4;border-radius:var(--rs);font-size:0.78rem;color:#134e4a;line-height:1.6}
+.weekend-notice strong{color:#0d9488}
+.task-item.weekend-task{padding:0.45rem 0.5rem}
+.weekend-sleep-tip{display:flex;align-items:flex-start;gap:0.6rem;margin-top:0.75rem;padding:0.6rem 0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--rs);font-size:0.75rem;color:#78350f;line-height:1.6}
+.weekend-sleep-tip .tip-icon{font-size:1.2rem;flex-shrink:0;margin-top:0.1rem}
+.weekend-sleep-tip strong{color:#92400e}
+
 /* RESPONSIVE */
 @media(max-width:1000px){.mode-grid{grid-template-columns:1fr}.bottom-grid{grid-template-columns:1fr}.stats-categories{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){#app{padding:0.75rem 1rem 2rem}.top-bar{flex-direction:column;gap:0.5rem}.tab-nav{flex-wrap:wrap}.stats-overview{grid-template-columns:repeat(4,1fr)}.stats-categories{grid-template-columns:1fr}}

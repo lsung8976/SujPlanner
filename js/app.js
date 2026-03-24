@@ -147,13 +147,25 @@ var MODES = [
             { id:'core_deepdive', label:'Core Research 깊이 파기 (수식, Figure)' },
             { id:'piano_exercise', label:'피아노 / 필라테스 & 복싱' },
             { id:'eng_diary', label:'영어 일기 작성 (최소 3문장)' },
-            { id:'tomorrow_plan', label:'내일 AI 작업 미리 구상' }
+            { id:'tomorrow_plan', label:'내일 AI 작업 미리 구상' },
+            { id:'reading_2pages', label:'침대에서 책 딱 2페이지 읽기 💊', isFlex:true }
         ]
     }
 ];
 
 // ===== CORE TASKS (무조건 매일) =====
 var CORE_TASK_IDS = ['swimming', 'radar_entry', 'eng_diary'];
+
+// ===== WEEKEND RECHARGE TASKS =====
+var WEEKEND_TASKS = [
+    { id:'we_wake',    label:'기상 닻 내리기: 오전 7:30 이전에 이불 밖으로', isCore:true },
+    { id:'we_escape',  label:'공간 탈출: 오전 11시 전 집 밖으로 (카페/도서관)' },
+    { id:'we_active',  label:'동적 휴식: 산책 / 복싱 / 필라테스 30분 이상' },
+    { id:'we_brain',   label:'뇌 환기: 전공 외 독서 (소설·에세이·인문학)' },
+    { id:'we_reading', label:'침대에서 책 딱 2페이지 읽기 💊' }
+];
+
+function isWeekend(d){ var day=(d instanceof Date?d:new Date(d)).getDay(); return day===0||day===6; }
 
 // ===== STATE =====
 var currentDate=new Date(), calendarDate=new Date();
@@ -166,7 +178,16 @@ function dn(i){return['일','월','화','수','목','금','토'][i]}
 function kd(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+dn(d.getDay())+')'}
 function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function allIds(){var r=[];MODES.forEach(function(m){m.tasks.forEach(function(t){r.push(t.id)})});return r}
-function compRate(d){if(!d||!d.tasks)return 0;if(d.flow_mode&&d.flow_text&&d.flow_text.trim().length>0)return 1;var ids=allIds(),done=0;ids.forEach(function(id){if(d.tasks[id])done++});return ids.length?done/ids.length:0}
+function compRate(d){
+    if(!d||!d.tasks)return 0;
+    if(d.flow_mode&&d.flow_text&&d.flow_text.trim().length>0)return 1;
+    if(d.weekend_mode){
+        var wd=0;WEEKEND_TASKS.forEach(function(t){if(d.tasks[t.id])wd++});
+        return WEEKEND_TASKS.length?wd/WEEKEND_TASKS.length:0;
+    }
+    var ids=allIds(),done=0;ids.forEach(function(id){if(d.tasks[id])done++});
+    return ids.length?done/ids.length:0;
+}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 
 // ===== TRACK A/B DATA SERVICE =====
@@ -310,6 +331,7 @@ async function loadDate(date){
     currentData=saved||{tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
     if(currentData.note&&!currentData.diary)currentData.diary=currentData.note;
     if(!currentData.paper_log)currentData.paper_log={what:'',result:'',idea:'',tags:''};
+    currentData.weekend_mode=isWeekend(currentDate);
 
     // Restore flow mode
     flowMode=!!currentData.flow_mode;
@@ -318,6 +340,8 @@ async function loadDate(date){
     D.daily_diary.value=currentData.diary||'';
     D.daily_memo.value=currentData.memo||'';
     D.diary_char_count.textContent=(currentData.diary||'').length+'자';
+    var nudge=document.getElementById('diary-nudge');
+    if(nudge)nudge.classList.toggle('visible',(currentData.diary||'').length>30);
 
     var h=getTodayHanja(ds);
     D.hanja_char.textContent=h.char;D.hanja_reading.textContent=h.reading;
@@ -331,7 +355,13 @@ async function loadDate(date){
 function setupEvents(){
     D.prev_day.addEventListener('click',function(){var d=new Date(currentDate);d.setDate(d.getDate()-1);loadDate(d)});
     D.next_day.addEventListener('click',function(){var d=new Date(currentDate);d.setDate(d.getDate()+1);loadDate(d)});
-    D.daily_diary.addEventListener('input',function(e){currentData.diary=e.target.value;D.diary_char_count.textContent=e.target.value.length+'자';save()});
+    D.daily_diary.addEventListener('input',function(e){
+        currentData.diary=e.target.value;
+        D.diary_char_count.textContent=e.target.value.length+'자';
+        var nudge=document.getElementById('diary-nudge');
+        if(nudge)nudge.classList.toggle('visible',e.target.value.length>30);
+        save();
+    });
     D.daily_memo.addEventListener('input',function(e){currentData.memo=e.target.value;save()});
     D.hanja_char_input.addEventListener('input',function(e){currentData.hanja_char=e.target.value;save()});
     D.hanja_reading_input.addEventListener('input',function(e){currentData.hanja_reading=e.target.value;save()});
@@ -411,9 +441,54 @@ function renderRibbon(){
     }
 }
 
+// ===== WEEKEND RECHARGE MODE =====
+function renderWeekendMode(){
+    var c=D.mode_container;
+    c.className='mode-grid weekend-mode-grid';
+    c.innerHTML='';
+
+    var block=document.createElement('div');
+    block.className='mode-block weekend';
+
+    var fl=document.createElement('div');fl.className='funnel-label recharge';fl.textContent='🌴 Weekend Recharge Mode';
+    block.appendChild(fl);
+
+    var hdr=document.createElement('div');hdr.className='mode-header';
+    hdr.innerHTML='<span class="mode-emoji">🌴</span><span class="mode-title">주말 리차지</span><span class="mode-subtitle">수면 리듬 사수 · 번아웃 방지 · 뇌 환기</span>';
+    block.appendChild(hdr);
+
+    var checked=0;WEEKEND_TASKS.forEach(function(t){if(currentData.tasks[t.id])checked++;});
+    var pct=WEEKEND_TASKS.length?Math.round(checked/WEEKEND_TASKS.length*100):0;
+    var pw=document.createElement('div');pw.className='progress-wrap';
+    pw.innerHTML='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label"><span>'+checked+'/'+WEEKEND_TASKS.length+'</span><span>'+pct+'%</span></div>';
+    block.appendChild(pw);
+
+    var notice=document.createElement('div');notice.className='weekend-notice';
+    notice.innerHTML='<strong>💡 오늘의 철칙</strong> 기상 시간만 지키면 나머지는 자유. 뇌를 쉬게 하되 리듬은 사수. 전공 책 금지 — 소설·에세이만.';
+    block.appendChild(notice);
+
+    WEEKEND_TASKS.forEach(function(task){
+        var ic=!!currentData.tasks[task.id];
+        var el=document.createElement('div');el.className='task-item weekend-task'+(ic?' checked':'')+(task.isCore?' core-task':'');
+        var cb=document.createElement('div');cb.className='checkbox';cb.innerHTML='<span class="checkbox-inner">✔</span>';
+        var lbl=document.createElement('span');lbl.className='task-label';lbl.textContent=task.label;
+        el.appendChild(cb);el.appendChild(lbl);
+        el.addEventListener('click',function(){currentData.tasks[task.id]=!currentData.tasks[task.id];save();renderWeekendMode();});
+        block.appendChild(el);
+    });
+
+    var tip=document.createElement('div');tip.className='weekend-sleep-tip';
+    tip.innerHTML='<span class="tip-icon">😴</span><div><strong>수면 리듬 팁</strong> — 취침은 놓쳐도 기상은 7:30 이전. 낮잠은 오후 3시 전, 소파에서 20분만. 졸리면 침대 대신 산책.</div>';
+    block.appendChild(tip);
+
+    c.appendChild(block);
+}
+
 // ===== RENDER MODES =====
 function renderModes(){
+    D.mode_container.className='mode-grid';
     D.mode_container.innerHTML='';
+    if(isWeekend(currentDate)){renderWeekendMode();return;}
     MODES.forEach(function(mode){
         var block=document.createElement('div');
         block.className='mode-block '+mode.cssClass;
@@ -439,7 +514,8 @@ function renderModes(){
             var ic=!!currentData.tasks[task.id];
             var isAlt=!!currentData.tasks[task.id+'_alt'];
             var isCore=CORE_TASK_IDS.indexOf(task.id)>=0;
-            var el=document.createElement('div');el.className='task-item'+(ic?' checked':'')+(isCore?' core-task':'');
+            var isFlex=!!task.isFlex;
+            var el=document.createElement('div');el.className='task-item'+(ic?' checked':'')+(isCore?' core-task':'')+(isFlex?' flex-task':'');
 
             var cb=document.createElement('div');cb.className='checkbox';
             cb.innerHTML='<span class="checkbox-inner">✔</span>';
