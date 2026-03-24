@@ -197,6 +197,75 @@ var WEEKEND_TASKS = [
 
 function isWeekend(d){ var day=(d instanceof Date?d:new Date(d)).getDay(); return day===0||day===6; }
 
+// ===== DAILY EXPRESSIONS DB (65개, 날짜별 순환) =====
+var DAILY_EXPR=[
+    {expr:'burn out',meaning:'에너지가 소진되다'},{expr:'figure out',meaning:'파악하다, 알아내다'},
+    {expr:'give up',meaning:'포기하다'},{expr:'run into',meaning:'우연히 마주치다'},
+    {expr:'keep up with',meaning:'따라가다, 유지하다'},{expr:'catch up on',meaning:'밀린 것을 따라잡다'},
+    {expr:'put off',meaning:'미루다'},{expr:'set out',meaning:'착수하다, 시작하다'},
+    {expr:'carry on',meaning:'계속하다'},{expr:'work out',meaning:'잘 되다'},
+    {expr:'come across',meaning:'우연히 발견하다'},{expr:'break down',meaning:'분석하다'},
+    {expr:'pull through',meaning:'어려움을 극복하다'},{expr:'take on',meaning:'도전하다, 맡다'},
+    {expr:'give it a shot',meaning:'한번 해보다'},{expr:'in the long run',meaning:'장기적으로'},
+    {expr:'on the right track',meaning:'올바른 방향으로'},{expr:'cut corners',meaning:'대충 처리하다'},
+    {expr:'hit the books',meaning:'공부하다'},{expr:'fall behind',meaning:'뒤처지다'},
+    {expr:'get the hang of',meaning:'요령을 터득하다'},{expr:'think outside the box',meaning:'창의적으로 생각하다'},
+    {expr:'back to square one',meaning:'원점으로 돌아가다'},{expr:'bite the bullet',meaning:'고통을 참고 하다'},
+    {expr:'push through',meaning:'밀고 나가다'},{expr:'stay on track',meaning:'계획대로 유지하다'},
+    {expr:'dig deep',meaning:'깊이 파고들다'},{expr:'bounce back',meaning:'회복하다'},
+    {expr:'hit a wall',meaning:'벽에 부딪히다'},{expr:'wrap up',meaning:'마무리하다'},
+    {expr:'narrow down',meaning:'좁혀나가다'},{expr:'make progress',meaning:'진전을 이루다'},
+    {expr:'step back',meaning:'한발 물러서다'},{expr:'flesh out',meaning:'구체화하다'},
+    {expr:'nail down',meaning:'확실히 하다'},{expr:'block out',meaning:'시간을 따로 빼두다'},
+    {expr:'make sense of',meaning:'이해하다'},{expr:'run out of steam',meaning:'동력을 잃다'},
+    {expr:'draw a blank',meaning:'생각이 떠오르지 않다'},{expr:'turn the corner',meaning:'고비를 넘기다'},
+    {expr:'have a breakthrough',meaning:'돌파구를 찾다'},{expr:'be in the zone',meaning:'몰입 상태에 있다'},
+    {expr:'lose track of time',meaning:'시간 가는 줄 모르다'},{expr:'make headway',meaning:'진전을 이루다'},
+    {expr:'chip away at',meaning:'조금씩 해나가다'},{expr:'go the extra mile',meaning:'한 걸음 더 나아가다'},
+    {expr:'put in the work',meaning:'노력을 기울이다'},{expr:'take a breather',meaning:'잠깐 쉬다'},
+    {expr:'be on a roll',meaning:'흐름이 좋다'},{expr:'come a long way',meaning:'많이 발전하다'},
+    {expr:'kick off',meaning:'시작하다'},{expr:'end up',meaning:'결국 ~하게 되다'},
+    {expr:'look forward to',meaning:'기대하다'},{expr:'break through',meaning:'돌파하다'},
+    {expr:'take it one step at a time',meaning:'한 번에 한 걸음씩'},{expr:'get back on track',meaning:'다시 궤도에 오르다'},
+    {expr:'move on',meaning:'넘어가다'},{expr:'zoom in on',meaning:'집중하다'},
+    {expr:'tackle',meaning:'해결하다, 다루다'},{expr:'sit with',meaning:'곰씹다, 받아들이다'},
+    {expr:'hit the ground running',meaning:'빠르게 시작하다'},{expr:'pull an all-nighter',meaning:'밤을 새우다'},
+    {expr:'call it a day',meaning:'오늘은 여기서 마치다'},{expr:'on top of things',meaning:'상황을 잘 파악하고 있다'},
+    {expr:'pick up the pace',meaning:'속도를 내다'}
+];
+function getDailyExpr(ds){var dy=Math.floor((new Date(ds)-new Date(ds.split('-')[0],0,0))/864e5);return DAILY_EXPR[dy%DAILY_EXPR.length]}
+
+// ===== EXPRESSION DETECTION =====
+function _checkExprInDiary(text,expr){
+    var found=text.toLowerCase().indexOf(expr.toLowerCase())>=0;
+    D.expr_icon.textContent=found?'✅':'💡';
+    if(D.daily_expr_banner)D.daily_expr_banner.classList.toggle('expr-matched',found);
+}
+
+// ===== TOAST =====
+function showToast(msg,type){
+    var tc=D.toast_container;if(!tc)return;
+    var t=document.createElement('div');
+    t.className='toast'+(type==='warn'?' toast-warn':type==='success'?' toast-success':'');
+    t.textContent=msg;
+    tc.appendChild(t);
+    setTimeout(function(){t.classList.add('toast-hide');setTimeout(function(){if(t.parentNode)tc.removeChild(t)},400)},3000);
+}
+
+// ===== CORE CHECK MODAL =====
+var _coreModalShownDate='';
+function showCoreModal(){
+    var missing=CORE_TASK_IDS.filter(function(id){return !currentData.tasks[id]});
+    if(!missing.length)return;
+    var labels=missing.map(function(id){
+        var lbl=id;
+        MODES.forEach(function(m){m.tasks.forEach(function(t){if(t.id===id)lbl=t.label})});
+        return lbl;
+    });
+    D.core_modal_missing.innerHTML=labels.map(function(l){return'<div class="core-missing-item">• '+l+'</div>'}).join('');
+    D.core_check_modal.style.display='flex';
+}
+
 // ===== STATE =====
 var currentDate=new Date(), calendarDate=new Date();
 var flowMode=false;
@@ -207,7 +276,7 @@ function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'
 function dn(i){return['일','월','화','수','목','금','토'][i]}
 function kd(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+dn(d.getDay())+')'}
 function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
-function allIds(){var r=[];MODES.forEach(function(m){m.tasks.forEach(function(t){r.push(t.id)})});return r}
+function allIds(skipMorning){var r=[];MODES.forEach(function(m){if(skipMorning&&m.id==='morning')return;m.tasks.forEach(function(t){r.push(t.id)})});return r}
 function compRate(d){
     if(!d||!d.tasks)return 0;
     if(d.flow_mode&&d.flow_text&&d.flow_text.trim().length>0)return 1;
@@ -215,7 +284,7 @@ function compRate(d){
         var wd=0;WEEKEND_TASKS.forEach(function(t){if(d.tasks[t.id])wd++});
         return WEEKEND_TASKS.length?wd/WEEKEND_TASKS.length:0;
     }
-    var ids=allIds(),done=0;ids.forEach(function(id){if(d.tasks[id])done++});
+    var ids=allIds(d.morning_skipped),done=0;ids.forEach(function(id){if(d.tasks[id])done++});
     return ids.length?done/ids.length:0;
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
@@ -302,6 +371,9 @@ async function renderHanjaHistory(){
 function cacheDom(){
     ['current-date-display','prev-day','next-day','weekly-ribbon','mode-container',
      'daily-diary','diary-char-count','daily-memo','sync-status',
+     'daily-expr-banner','expr-icon','expr-text','expr-meaning',
+     'toast-container',
+     'core-check-modal','core-modal-missing','core-modal-quit','core-modal-go',
      'hanja-char-input','hanja-reading-input','hanja-meaning-input','hanja-note-input',
      'idiom-shuffle','chinese-shuffle','hanja-history',
      'calendar-month-display','prev-month','next-month','calendar-grid',
@@ -399,6 +471,15 @@ async function loadDate(date){
     var nudge=document.getElementById('diary-nudge');
     if(nudge)nudge.classList.toggle('visible',(currentData.diary||'').length>30);
 
+    // Daily expression
+    var expr=getDailyExpr(ds);
+    D.expr_text.textContent=expr.expr;
+    D.expr_meaning.textContent='('+expr.meaning+')';
+    _checkExprInDiary(currentData.diary||'',expr.expr);
+
+    // Reset core modal flag for new date
+    _coreModalShownDate='';
+
     renderIdiom(getTodayIdiom(ds));
     renderChinese(getTodayChinese(ds));
     D.hanja_char_input.value=currentData.hanja_char||'';
@@ -417,8 +498,19 @@ function setupEvents(){
         D.diary_char_count.textContent=e.target.value.length+'자';
         var nudge=document.getElementById('diary-nudge');
         if(nudge)nudge.classList.toggle('visible',e.target.value.length>30);
+        _checkExprInDiary(e.target.value,getDailyExpr(fmt(currentDate)).expr);
         save();
     });
+    D.daily_diary.addEventListener('focus',function(){
+        var ds=fmt(currentDate);
+        if(_coreModalShownDate===ds)return;
+        var missing=CORE_TASK_IDS.filter(function(id){return !currentData.tasks[id]});
+        if(!missing.length)return;
+        _coreModalShownDate=ds;
+        showCoreModal();
+    });
+    D.core_modal_quit.addEventListener('click',function(){D.core_check_modal.style.display='none'});
+    D.core_modal_go.addEventListener('click',function(){D.core_check_modal.style.display='none'});
     D.daily_memo.addEventListener('input',function(e){currentData.memo=e.target.value;save()});
     D.hanja_char_input.addEventListener('input',function(e){currentData.hanja_char=e.target.value;save()});
     D.hanja_reading_input.addEventListener('input',function(e){currentData.hanja_reading=e.target.value;save()});
@@ -568,8 +660,9 @@ function renderModes(){
     D.mode_container.innerHTML='';
     if(isWeekend(currentDate)){renderWeekendMode();return;}
     MODES.forEach(function(mode){
+        var isSkipped=!!currentData.morning_skipped&&mode.id==='morning';
         var block=document.createElement('div');
-        block.className='mode-block '+mode.cssClass;
+        block.className='mode-block '+mode.cssClass+(isSkipped?' mode-skipped':'');
 
         // Funnel label
         var fl=document.createElement('div');fl.className='funnel-label '+mode.funnelLabel;fl.textContent=mode.funnelText;
@@ -611,7 +704,20 @@ function renderModes(){
                 el.appendChild(ab);
             }
 
-            el.addEventListener('click',function(){currentData.tasks[task.id]=!currentData.tasks[task.id];save();renderModes()});
+            el.addEventListener('click',function(){
+                var newVal=!currentData.tasks[task.id];
+                if(newVal&&isFlex&&!isSkipped){
+                    var coreDone=CORE_TASK_IDS.every(function(id){return currentData.tasks[id]});
+                    if(!coreDone){
+                        var missingLabels=CORE_TASK_IDS.filter(function(id){return!currentData.tasks[id]}).map(function(id){
+                            var lbl=id;MODES.forEach(function(m){m.tasks.forEach(function(t){if(t.id===id)lbl=t.label.split(' (')[0]})});return lbl;
+                        });
+                        showToast('⚠️ Core 항목이 아직 비어있어요: '+missingLabels.join(', '),'warn');
+                    }
+                }
+                if(!isSkipped)currentData.tasks[task.id]=newVal;
+                save();renderModes();
+            });
             block.appendChild(el);
         });
 
@@ -649,6 +755,17 @@ function renderModes(){
             rii.value=currentData.radar_insight||'';
             rii.addEventListener('input',function(e){currentData.radar_insight=e.target.value;save()});
             ri.appendChild(rii);block.appendChild(ri);
+        }
+
+        // Half-day reset (오전 Director Mode, 오늘 날짜, 11시 이후, 아직 스킵 안 했을 때)
+        if(mode.id==='morning'&&sameDay(currentDate,new Date())&&new Date().getHours()>=11&&!currentData.morning_skipped){
+            var morningDone=0;mode.tasks.forEach(function(t){if(currentData.tasks[t.id])morningDone++});
+            if(morningDone===0){
+                var rb=document.createElement('button');rb.className='half-day-reset-btn';
+                rb.innerHTML='🔄 오후부터 다시 시작하기';
+                rb.addEventListener('click',function(){currentData.morning_skipped=true;save();renderModes();showToast('아침은 리셋! 지금부터 Architect Mode 100% 목표 🏃','success')});
+                block.appendChild(rb);
+            }
         }
 
         D.mode_container.appendChild(block);

@@ -411,6 +411,44 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{margin-top:1rem;font-size:0.88rem;color:var(--text2);font-weight:500}
 
+/* ===== DAILY EXPRESSION BANNER ===== */
+.daily-expr-banner{display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--rs);margin-bottom:0.5rem;font-size:0.78rem;color:#1e40af;flex-wrap:wrap}
+.expr-icon{font-size:1rem;flex-shrink:0;transition:transform 0.3s}
+.daily-expr-banner.expr-matched{background:#f0fdf4;border-color:#86efac;color:#166534}
+.daily-expr-banner.expr-matched .expr-icon{transform:scale(1.3)}
+.expr-body strong{font-weight:700;font-style:italic}
+.expr-meaning{color:#3b82f6;font-size:0.73rem}
+.daily-expr-banner.expr-matched .expr-meaning{color:#16a34a}
+.expr-hint{margin-left:auto;font-size:0.7rem;color:#93c5fd;font-weight:500}
+.daily-expr-banner.expr-matched .expr-hint{content:'✓ 완료!';color:#4ade80}
+@keyframes exprPop{0%{transform:scale(1)}50%{transform:scale(1.5) rotate(20deg)}100%{transform:scale(1)}}
+.daily-expr-banner.expr-matched .expr-icon{animation:exprPop 0.4s ease}
+
+/* ===== TOAST ===== */
+#toast-container{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9990;display:flex;flex-direction:column;gap:0.5rem;align-items:center;pointer-events:none}
+.toast{background:#1a1a1a;color:#fff;padding:0.6rem 1.25rem;border-radius:20px;font-size:0.82rem;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:toastIn 0.25s ease;max-width:420px;text-align:center}
+.toast.toast-warn{background:#92400e;border:1px solid #fde68a}
+.toast.toast-success{background:var(--green);border:1px solid var(--green-mid)}
+.toast.toast-hide{animation:toastOut 0.4s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
+
+/* ===== CORE CHECK MODAL ===== */
+.core-check-content{text-align:center}
+.core-modal-icon{font-size:2rem;margin-bottom:0.5rem}
+.core-modal-missing{margin:0.6rem 0;text-align:left;display:inline-block}
+.core-missing-item{font-size:0.82rem;color:var(--text2);padding:0.2rem 0}
+.core-modal-actions{display:flex;gap:0.5rem;justify-content:center;margin-top:1rem}
+
+/* ===== MORNING SKIPPED ===== */
+.mode-block.mode-skipped{opacity:0.45;filter:grayscale(0.6)}
+.mode-block.mode-skipped .task-item{pointer-events:none}
+.mode-block.mode-skipped::after{content:'💤 오늘은 건너뜀';display:block;text-align:center;font-size:0.72rem;font-weight:600;color:var(--text3);padding:0.4rem 0 0}
+
+/* ===== HALF-DAY RESET BUTTON ===== */
+.half-day-reset-btn{width:100%;margin-top:0.6rem;background:none;border:1.5px dashed var(--orange);border-radius:var(--rs);padding:0.45rem;font-size:0.76rem;font-weight:600;color:var(--orange);cursor:pointer;transition:all var(--tr)}
+.half-day-reset-btn:hover{background:#fff7ed;border-style:solid}
+
 /* ===== FLEX TASK (독서 등 선택 항목) ===== */
 .task-item.flex-task{border-left:3px solid var(--text3);padding-left:0.65rem;opacity:0.85}
 .task-item.flex-task .task-label::after{content:'Flex';font-size:0.55rem;font-weight:700;color:var(--text3);background:var(--bg);border:1px solid var(--border);padding:1px 5px;border-radius:3px;margin-left:0.4rem;vertical-align:middle}

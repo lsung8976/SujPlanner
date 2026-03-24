@@ -101,6 +101,11 @@
                         <h3>오늘의 일기 / 영어 일기</h3><span class="badge important">중요</span><span class="char-count"
                             id="diary-char-count">0자</span>
                     </div>
+                    <div class="daily-expr-banner" id="daily-expr-banner">
+                        <span class="expr-icon" id="expr-icon">💡</span>
+                        <span class="expr-body">오늘의 표현: <strong id="expr-text"></strong> <span class="expr-meaning" id="expr-meaning"></span></span>
+                        <span class="expr-hint">→ 일기에 써보세요!</span>
+                    </div>
                     <textarea id="daily-diary" class="diary-textarea"
                         placeholder="오늘 하루를 기록해보세요. 영어 최소 3문장 포함!"></textarea>
                     <div class="diary-nudge" id="diary-nudge">
@@ -413,6 +418,23 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Core Check Modal -->
+    <div id="core-check-modal" class="modal-backdrop" style="display:none;">
+        <div class="modal-content core-check-content">
+            <div class="core-modal-icon">⚠️</div>
+            <h3>오늘 하루를 닫으시겠어요?</h3>
+            <p class="modal-desc">아직 완료하지 않은 <strong>Core 항목</strong>이 있습니다:</p>
+            <div id="core-modal-missing" class="core-modal-missing"></div>
+            <div class="core-modal-actions">
+                <button id="core-modal-quit" class="cancel-btn">😴 진짜 피곤해서 여기까지</button>
+                <button id="core-modal-go" class="save-btn">🏃 잠깐, 하고 올게요</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -420,9 +442,6 @@
     <script src="./js/app.js"></script>
     <script src="./js/migrate-data.js"></script>
     <script src="./js/migrate-notion.js"></script>
-    <script src="./js/migrate-format.js"></script>
-    <script src="./js/migrate-excel.js"></script>
-    <script src="./js/sync-to-firebase.js"></script>
 </body>
 
 </html>
