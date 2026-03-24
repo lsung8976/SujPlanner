@@ -115,7 +115,37 @@ var HANJA_DB=[
 {char:'你多大',reading:'nǐ duō dà',meaning:'나이가 어떻게 되세요?',detail:'나이를 물어볼 때.'},
 {char:'生日快乐',reading:'shēng rì kuài lè',meaning:'생일 축하합니다',detail:'생일을 축하할 때.'}
 ];
-function getTodayHanja(ds){var dy=Math.floor((new Date(ds)-new Date(ds.split('-')[0],0,0))/864e5);return HANJA_DB[dy%HANJA_DB.length]}
+// Split DB into idioms and chinese
+var IDIOM_DB=HANJA_DB.filter(function(_,i){return i<30});
+var CHINESE_DB=HANJA_DB.filter(function(_,i){return i>=30});
+var hanjaIdiomIdx=0, hanjaChineseIdx=0;
+function getTodayIdiom(ds){var dy=Math.floor((new Date(ds)-new Date(ds.split('-')[0],0,0))/864e5);hanjaIdiomIdx=dy%IDIOM_DB.length;return IDIOM_DB[hanjaIdiomIdx]}
+function getTodayChinese(ds){var dy=Math.floor((new Date(ds)-new Date(ds.split('-')[0],0,0))/864e5);hanjaChineseIdx=(dy+7)%CHINESE_DB.length;return CHINESE_DB[hanjaChineseIdx]}
+function parseHuneum(detail){
+    var m=detail.match(/훈음:\s*(.+?)(?:\n|$)/);if(!m)return[];
+    return m[1].split(/\)\s*/).filter(Boolean).map(function(s){
+        var p=s.match(/(.+?)\((.+)/);
+        return p?{char:p[1].trim(),hun:p[2].trim()+')'}:{char:s.trim(),hun:''};
+    });
+}
+function parseStory(detail){var lines=detail.split('\n');return lines.filter(function(l){return l.indexOf('훈음:')<0}).join('\n').trim()}
+function parsePinyin(detail){var m=detail.match(/중국어:\s*(.+?)$/m);return m?m[1].trim():''}
+function renderIdiom(item){
+    document.getElementById('idiom-char').textContent=item.char;
+    document.getElementById('idiom-reading').textContent=item.reading;
+    document.getElementById('idiom-meaning').textContent=item.meaning;
+    var pills=parseHuneum(item.detail);
+    var bd=document.getElementById('idiom-breakdown');bd.innerHTML='';
+    pills.forEach(function(p){if(p.char){var sp=document.createElement('span');sp.className='hanja-char-pill';sp.innerHTML='<span class="pill-char">'+p.char+'</span><span class="pill-hun">'+p.hun+'</span>';bd.appendChild(sp)}});
+    document.getElementById('idiom-story').textContent=parseStory(item.detail);
+    document.getElementById('idiom-pinyin').textContent=parsePinyin(item.detail);
+}
+function renderChinese(item){
+    document.getElementById('chinese-char').textContent=item.char;
+    document.getElementById('chinese-pinyin').textContent=item.reading;
+    document.getElementById('chinese-meaning').textContent=item.meaning;
+    document.getElementById('chinese-detail').textContent=item.detail;
+}
 
 // ===== 3-STAGE FUNNEL MODES =====
 var MODES = [
@@ -158,7 +188,7 @@ var CORE_TASK_IDS = ['swimming', 'radar_entry', 'eng_diary'];
 // ===== STATE =====
 var currentDate=new Date(), calendarDate=new Date();
 var flowMode=false;
-var currentData={tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
+var currentData={tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_meaning:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
 
 // ===== UTILS =====
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -222,11 +252,37 @@ var TrackService = {
 
 // ===== DOM CACHE =====
 var D={};
+async function renderHanjaHistory(){
+    var el=document.getElementById('hanja-history');if(!el)return;
+    var all=[];
+    try{
+        var keys=await TrackService.getAll('daily_routines');
+        keys.forEach(function(d){
+            if(d.hanja_char&&d.hanja_char.trim()){
+                all.push({date:d._id||'',char:d.hanja_char,reading:d.hanja_reading||'',meaning:d.hanja_meaning||'',note:d.hanja_note||''});
+            }
+        });
+    }catch(e){
+        var ls=Object.keys(localStorage);
+        ls.forEach(function(k){
+            if(k.indexOf('routine_')===0){try{var d=JSON.parse(localStorage.getItem(k));if(d&&d.hanja_char&&d.hanja_char.trim()){all.push({date:k.replace('routine_',''),char:d.hanja_char,reading:d.hanja_reading||'',meaning:d.hanja_meaning||'',note:d.hanja_note||''})}}catch(e2){}}
+        });
+    }
+    all.sort(function(a,b){return b.date.localeCompare(a.date)});
+    var recent=all.slice(0,10);
+    if(!recent.length){el.innerHTML='<div class="hanja-history-title">최근 기록이 없습니다</div>';return}
+    var html='<div class="hanja-history-title">최근 기록 ('+recent.length+'건)</div>';
+    recent.forEach(function(r){
+        html+='<div class="hanja-history-item"><span class="h-char">'+r.char+'</span><span class="h-reading">'+r.reading+'</span><span class="h-meaning">'+r.meaning+'</span></div>';
+    });
+    el.innerHTML=html;
+}
+
 function cacheDom(){
     ['current-date-display','prev-day','next-day','weekly-ribbon','mode-container',
      'daily-diary','diary-char-count','daily-memo','sync-status',
-     'hanja-char','hanja-reading','hanja-meaning','hanja-detail',
-     'hanja-char-input','hanja-reading-input','hanja-note-input',
+     'hanja-char-input','hanja-reading-input','hanja-meaning-input','hanja-note-input',
+     'idiom-shuffle','chinese-shuffle','hanja-history',
      'calendar-month-display','prev-month','next-month','calendar-grid',
      'gcal-week-section','gcal-week-grid','gcal-week-label','gcal-prev-week','gcal-next-week',
      'gcal-events','gcal-list',
@@ -307,7 +363,7 @@ async function loadDate(date){
     D.current_date_display.textContent=kd(currentDate);
 
     var saved=await DataService.getDailyData(ds);
-    currentData=saved||{tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
+    currentData=saved||{tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_meaning:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
     if(currentData.note&&!currentData.diary)currentData.diary=currentData.note;
     if(!currentData.paper_log)currentData.paper_log={what:'',result:'',idea:'',tags:''};
 
@@ -319,12 +375,13 @@ async function loadDate(date){
     D.daily_memo.value=currentData.memo||'';
     D.diary_char_count.textContent=(currentData.diary||'').length+'자';
 
-    var h=getTodayHanja(ds);
-    D.hanja_char.textContent=h.char;D.hanja_reading.textContent=h.reading;
-    D.hanja_meaning.textContent=h.meaning;D.hanja_detail.textContent=h.detail;
+    renderIdiom(getTodayIdiom(ds));
+    renderChinese(getTodayChinese(ds));
     D.hanja_char_input.value=currentData.hanja_char||'';
     D.hanja_reading_input.value=currentData.hanja_reading||'';
+    if(D.hanja_meaning_input)D.hanja_meaning_input.value=currentData.hanja_meaning||'';
     D.hanja_note_input.value=currentData.hanja_note||'';
+    renderHanjaHistory();
     renderRibbon();
 }
 
@@ -335,7 +392,28 @@ function setupEvents(){
     D.daily_memo.addEventListener('input',function(e){currentData.memo=e.target.value;save()});
     D.hanja_char_input.addEventListener('input',function(e){currentData.hanja_char=e.target.value;save()});
     D.hanja_reading_input.addEventListener('input',function(e){currentData.hanja_reading=e.target.value;save()});
+    if(D.hanja_meaning_input)D.hanja_meaning_input.addEventListener('input',function(e){currentData.hanja_meaning=e.target.value;save()});
     D.hanja_note_input.addEventListener('input',function(e){currentData.hanja_note=e.target.value;save()});
+
+    // Hanja tab switching
+    document.querySelectorAll('.hanja-tab').forEach(function(tab){
+        tab.addEventListener('click',function(){
+            document.querySelectorAll('.hanja-tab').forEach(function(t){t.classList.remove('active')});
+            document.querySelectorAll('.hanja-panel').forEach(function(p){p.classList.remove('active')});
+            tab.classList.add('active');
+            document.getElementById('hanja-panel-'+tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Shuffle buttons
+    D.idiom_shuffle.addEventListener('click',function(){
+        hanjaIdiomIdx=(hanjaIdiomIdx+1)%IDIOM_DB.length;
+        renderIdiom(IDIOM_DB[hanjaIdiomIdx]);
+    });
+    D.chinese_shuffle.addEventListener('click',function(){
+        hanjaChineseIdx=(hanjaChineseIdx+1)%CHINESE_DB.length;
+        renderChinese(CHINESE_DB[hanjaChineseIdx]);
+    });
 
     document.addEventListener('keydown',function(e){
         if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;
@@ -888,7 +966,7 @@ function showDetail(ds,data){
     }
     if(data.radar_insight){var ri=document.createElement('div');ri.className='radar-entry-insight';ri.innerHTML='<strong>🌟</strong> '+renderMd(data.radar_insight);D.detail_content.appendChild(ri)}
     var diary=data.diary||data.note||'';if(diary.trim()){var dd2=document.createElement('div');dd2.className='detail-diary';dd2.textContent=diary;D.detail_content.appendChild(dd2)}
-    if(data.hanja_char){var hd=document.createElement('div');hd.className='detail-hanja';hd.innerHTML='<strong>'+data.hanja_char+'</strong> '+(data.hanja_reading||'')+(data.hanja_note?' — '+data.hanja_note:'');D.detail_content.appendChild(hd)}
+    if(data.hanja_char){var hd=document.createElement('div');hd.className='detail-hanja';hd.innerHTML='<strong>'+data.hanja_char+'</strong> '+(data.hanja_reading||'')+(data.hanja_meaning?' — '+data.hanja_meaning:'')+(data.hanja_note?'<br><em>'+data.hanja_note+'</em>':'');D.detail_content.appendChild(hd)}
     D.day_detail.style.display='block';
 
     // Google Calendar events
