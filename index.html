@@ -110,23 +110,69 @@
                 <div class="side-col">
                     <section class="card hanja-card">
                         <div class="card-header">
-                            <h3>오늘의 사자성어 / 중국어</h3>
-                        </div>
-                        <div class="hanja-today">
-                            <div class="hanja-character" id="hanja-char">學</div>
-                            <div class="hanja-info">
-                                <div class="hanja-reading" id="hanja-reading">배울 학</div>
-                                <div class="hanja-meaning" id="hanja-meaning">learn</div>
-                                <div class="hanja-detail" id="hanja-detail"></div>
+                            <h3>한자 학습</h3>
+                            <div class="hanja-tabs">
+                                <button class="hanja-tab active" data-tab="idiom">사자성어</button>
+                                <button class="hanja-tab" data-tab="chinese">중국어</button>
+                                <button class="hanja-tab" data-tab="record">직접 기록</button>
                             </div>
                         </div>
-                        <div class="hanja-record">
-                            <div class="hanja-input-row">
-                                <input type="text" id="hanja-char-input" class="hanja-input char-input" placeholder="漢"
-                                    maxlength="1">
-                                <input type="text" id="hanja-reading-input" class="hanja-input" placeholder="훈음">
+
+                        <!-- 사자성어 탭 -->
+                        <div class="hanja-panel active" id="hanja-panel-idiom">
+                            <div class="hanja-showcase">
+                                <div class="hanja-showcase-main">
+                                    <div class="hanja-big-char" id="idiom-char">臥薪嘗膽</div>
+                                    <div class="hanja-reading-big" id="idiom-reading">와신상담</div>
+                                </div>
+                                <div class="hanja-showcase-sub">
+                                    <div class="hanja-meaning-text" id="idiom-meaning">잠자리에 가시를 깔고 쓸개를 핥다</div>
+                                    <div class="hanja-char-breakdown" id="idiom-breakdown"></div>
+                                    <div class="hanja-story" id="idiom-story"></div>
+                                    <div class="hanja-pinyin" id="idiom-pinyin"></div>
+                                </div>
                             </div>
-                            <input type="text" id="hanja-note-input" class="hanja-input full" placeholder="메모 / 용례">
+                            <button class="hanja-shuffle-btn" id="idiom-shuffle">다른 사자성어 보기</button>
+                        </div>
+
+                        <!-- 중국어 탭 -->
+                        <div class="hanja-panel" id="hanja-panel-chinese">
+                            <div class="hanja-showcase">
+                                <div class="hanja-showcase-main">
+                                    <div class="hanja-big-char chinese-char" id="chinese-char">你好</div>
+                                    <div class="hanja-reading-big pinyin" id="chinese-pinyin">ni hao</div>
+                                </div>
+                                <div class="hanja-showcase-sub">
+                                    <div class="hanja-meaning-text" id="chinese-meaning">안녕하세요</div>
+                                    <div class="hanja-story" id="chinese-detail"></div>
+                                </div>
+                            </div>
+                            <button class="hanja-shuffle-btn" id="chinese-shuffle">다른 표현 보기</button>
+                        </div>
+
+                        <!-- 직접 기록 탭 -->
+                        <div class="hanja-panel" id="hanja-panel-record">
+                            <div class="hanja-record-form">
+                                <div class="hanja-record-row main-row">
+                                    <div class="hanja-record-field char-field">
+                                        <label>한자</label>
+                                        <input type="text" id="hanja-char-input" placeholder="漢字" class="hanja-rec-input big-char-input">
+                                    </div>
+                                    <div class="hanja-record-field flex-field">
+                                        <label>훈음</label>
+                                        <input type="text" id="hanja-reading-input" placeholder="한수 한, 글자 자" class="hanja-rec-input">
+                                    </div>
+                                </div>
+                                <div class="hanja-record-field">
+                                    <label>뜻 / 의미</label>
+                                    <input type="text" id="hanja-meaning-input" placeholder="예: 큰 뜻을 품고 학문을 닦다" class="hanja-rec-input">
+                                </div>
+                                <div class="hanja-record-field">
+                                    <label>메모 / 용례</label>
+                                    <textarea id="hanja-note-input" class="hanja-rec-input hanja-note-area" placeholder="관련 단어, 문장, 느낀점 등을 자유롭게 기록하세요"></textarea>
+                                </div>
+                            </div>
+                            <div class="hanja-record-history" id="hanja-history"></div>
                         </div>
                     </section>
                     <section class="card">

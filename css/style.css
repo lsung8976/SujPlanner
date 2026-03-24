@@ -137,19 +137,46 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 
 /* HANJA */
 .hanja-card{border-left:4px solid var(--amber)}
-.hanja-today{display:flex;align-items:center;gap:1rem;padding:0.6rem;background:linear-gradient(135deg,#fffbeb,#fff8e1);border-radius:var(--rs);margin-bottom:0.6rem}
-.hanja-character{font-family:'Noto Serif KR',serif;font-size:2rem;font-weight:900;color:#78350f;min-width:80px;text-align:center;letter-spacing:0.1em}
-.hanja-info{flex:1}
-.hanja-reading{font-size:0.95rem;font-weight:700;color:#78350f}
-.hanja-meaning{font-size:0.75rem;color:#92400e;margin-bottom:0.15rem}
-.hanja-detail{font-size:0.68rem;color:var(--text2);font-style:italic;line-height:1.4}
-.hanja-record{display:flex;flex-direction:column;gap:0.35rem}
-.hanja-input-row{display:flex;gap:0.35rem}
-.hanja-input{background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.4rem 0.5rem;font-family:inherit;font-size:0.78rem;color:var(--text);transition:border var(--tr)}
-.hanja-input:focus{outline:none;border-color:var(--amber)}
-.hanja-input.char-input{width:120px;text-align:center;font-family:'Noto Serif KR',serif;font-size:1.1rem;font-weight:700;padding:0.25rem}
-.hanja-input-row .hanja-input:not(.char-input){flex:1}
-.hanja-input.full{width:100%}
+.hanja-card .card-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem}
+.hanja-tabs{display:flex;gap:0.25rem}
+.hanja-tab{background:none;border:1.5px solid var(--border);border-radius:var(--rs);padding:0.25rem 0.6rem;font-size:0.72rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all var(--tr)}
+.hanja-tab:hover{border-color:var(--amber);color:#78350f}
+.hanja-tab.active{background:#78350f;border-color:#78350f;color:#fff}
+.hanja-panel{display:none}
+.hanja-panel.active{display:block}
+.hanja-showcase{padding:0.8rem;background:linear-gradient(135deg,#fffbeb,#fff8e1);border-radius:var(--rs);margin-bottom:0.5rem}
+.hanja-showcase-main{text-align:center;margin-bottom:0.6rem;padding-bottom:0.6rem;border-bottom:1px dashed #d4a574}
+.hanja-big-char{font-family:'Noto Serif KR',serif;font-size:2.4rem;font-weight:900;color:#78350f;letter-spacing:0.15em;line-height:1.3}
+.hanja-big-char.chinese-char{font-size:2rem;letter-spacing:0.08em}
+.hanja-reading-big{font-size:1rem;font-weight:700;color:#92400e;margin-top:0.2rem}
+.hanja-reading-big.pinyin{font-family:'Inter',sans-serif;font-style:italic;font-weight:600;color:#b45309}
+.hanja-showcase-sub{text-align:left}
+.hanja-meaning-text{font-size:0.88rem;font-weight:600;color:#78350f;margin-bottom:0.4rem;line-height:1.4}
+.hanja-char-breakdown{display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.4rem}
+.hanja-char-pill{display:inline-flex;align-items:center;gap:0.25rem;background:#fff;border:1px solid #e5c9a0;border-radius:999px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#78350f}
+.hanja-char-pill .pill-char{font-family:'Noto Serif KR',serif;font-weight:800;font-size:0.9rem}
+.hanja-char-pill .pill-hun{font-size:0.7rem;color:#92400e}
+.hanja-story{font-size:0.76rem;color:var(--text2);line-height:1.5;margin-bottom:0.3rem}
+.hanja-pinyin{font-size:0.72rem;color:#b45309;font-style:italic}
+.hanja-shuffle-btn{width:100%;background:none;border:1.5px dashed #d4a574;border-radius:var(--rs);padding:0.4rem;font-size:0.76rem;font-weight:600;color:#92400e;cursor:pointer;transition:all var(--tr)}
+.hanja-shuffle-btn:hover{background:#fffbeb;border-color:#78350f}
+.hanja-record-form{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.6rem}
+.hanja-record-row{display:flex;gap:0.5rem}
+.hanja-record-row.main-row .char-field{flex:0 0 100px}
+.hanja-record-row.main-row .flex-field{flex:1}
+.hanja-record-field{display:flex;flex-direction:column;gap:0.15rem}
+.hanja-record-field label{font-size:0.68rem;font-weight:700;color:#78350f;text-transform:uppercase;letter-spacing:0.03em}
+.hanja-rec-input{background:var(--input-bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:0.45rem 0.55rem;font-family:inherit;font-size:0.82rem;color:var(--text);transition:border var(--tr)}
+.hanja-rec-input:focus{outline:none;border-color:#78350f;box-shadow:0 0 0 2px rgba(120,53,15,0.1)}
+.hanja-rec-input.big-char-input{font-family:'Noto Serif KR',serif;font-size:1.4rem;font-weight:800;text-align:center;padding:0.3rem}
+.hanja-note-area{min-height:60px;resize:vertical;line-height:1.5}
+.hanja-record-history{border-top:1px solid var(--border);padding-top:0.5rem}
+.hanja-history-title{font-size:0.72rem;font-weight:700;color:var(--text2);margin-bottom:0.3rem}
+.hanja-history-item{display:flex;align-items:baseline;gap:0.4rem;padding:0.25rem 0;border-bottom:1px solid var(--hover);font-size:0.78rem}
+.hanja-history-item .h-char{font-family:'Noto Serif KR',serif;font-weight:800;font-size:0.95rem;color:#78350f;min-width:30px}
+.hanja-history-item .h-reading{color:#92400e;font-weight:600;min-width:60px}
+.hanja-history-item .h-meaning{color:var(--text2);flex:1}
+.hanja-history-item .h-note{color:var(--text2);font-size:0.72rem;font-style:italic}
 
 /* ===== TRACK HEADERS ===== */
 .track-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:2px solid var(--border-light)}
