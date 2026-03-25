@@ -297,6 +297,7 @@ var TrackService = {
             try {
                 var snap = await withTimeout(db.collection(collection).orderBy('created','desc').get(), FIRESTORE_TIMEOUT);
                 var items = []; snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; items.push(d); });
+                localStorage.setItem('suj_'+collection, JSON.stringify(items));
                 return items;
             } catch(e) { console.error(e); return this.getLocal(collection); }
         }

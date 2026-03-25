@@ -215,6 +215,7 @@ var DataService = {
                 var docSnap = await withTimeout(db.collection("daily_routines").doc(dateStr).get(), FIRESTORE_TIMEOUT);
                 var val = docSnap.exists ? docSnap.data() : null;
                 _cache[dateStr] = val;
+                if (val) this.saveLocalData(dateStr, val);
                 return val;
             } catch (e) {
                 console.warn("Firestore read failed, using localStorage:", e.message);
@@ -242,6 +243,7 @@ var DataService = {
                 snap.forEach(function(doc) {
                     result[doc.id] = doc.data();
                     _cache[doc.id] = doc.data();
+                    DataService.saveLocalData(doc.id, doc.data());
                 });
                 // fill missing days with null cache
                 for (var d = 1; d <= dim; d++) {
@@ -291,6 +293,7 @@ var DataService = {
                 snap.forEach(function(doc) {
                     result[doc.id] = doc.data();
                     _cache[doc.id] = doc.data();
+                    DataService.saveLocalData(doc.id, doc.data());
                 });
                 uncached.forEach(function(ds) {
                     if (!result[ds]) { result[ds] = null; _cache[ds] = null; }
