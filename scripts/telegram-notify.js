@@ -3,7 +3,22 @@ const admin = require('firebase-admin');
 // ===== CONFIG =====
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-const SERVICE_ACCOUNT = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+let SERVICE_ACCOUNT = {};
+try {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT || '{}';
+  SERVICE_ACCOUNT = JSON.parse(raw);
+} catch (e) {
+  // If JSON parse fails, try replacing escaped newlines
+  try {
+    const fixed = (process.env.FIREBASE_SERVICE_ACCOUNT || '{}').replace(/\\n/g, '\n');
+    SERVICE_ACCOUNT = JSON.parse(fixed);
+  } catch (e2) {
+    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e2.message);
+    console.error('Raw value length:', (process.env.FIREBASE_SERVICE_ACCOUNT || '').length);
+    console.error('First 100 chars:', (process.env.FIREBASE_SERVICE_ACCOUNT || '').substring(0, 100));
+    process.exit(1);
+  }
+}
 
 const CORE_TASKS = [
   { id: 'swimming', label: '수영 / 운동' },
