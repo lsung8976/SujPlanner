@@ -1,17 +1,19 @@
-name: SujPlanner Telegram Notifications
+name: SujPlanner Smart Nudge
 
 on:
   schedule:
-    # KST 07:30 = UTC 22:30 (previous day)
-    - cron: '30 22 * * *'
-    # KST 23:30 = UTC 14:30
-    - cron: '30 14 * * *'
+    # KST 05:40 = UTC 20:40 (previous day) - Wake Up Call
+    - cron: '40 20 * * *'
+    # KST 12:30 = UTC 03:30 - Lunch Checkpoint
+    - cron: '30 3 * * *'
+    # KST 23:00 = UTC 14:00 - Bedtime Checkpoint
+    - cron: '0 14 * * *'
   workflow_dispatch:
     inputs:
       type:
-        description: 'Notification type (morning/evening)'
+        description: 'Notification type (wake/lunch/night)'
         required: false
-        default: 'morning'
+        default: 'wake'
 
 jobs:
   notify:
@@ -26,9 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm install firebase-admin@12
 
-      - name: Send notification
+      - name: Smart Nudge
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          INPUT_TYPE: ${{ github.event.inputs.type }}
         run: node scripts/telegram-notify.js
