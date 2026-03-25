@@ -98,18 +98,35 @@
             <div class="bottom-grid">
                 <section class="card diary-card">
                     <div class="card-header">
-                        <h3>오늘의 일기 / 영어 일기</h3><span class="badge important">중요</span><span class="char-count"
-                            id="diary-char-count">0자</span>
+                        <h3>오늘의 일기</h3><span class="badge important">중요</span>
                     </div>
-                    <div class="daily-expr-banner" id="daily-expr-banner">
-                        <span class="expr-icon" id="expr-icon">💡</span>
-                        <span class="expr-body">오늘의 표현: <strong id="expr-text"></strong> <span class="expr-meaning" id="expr-meaning"></span></span>
-                        <span class="expr-hint">→ 일기에 써보세요!</span>
+
+                    <!-- 한국어 일기 -->
+                    <div class="diary-section">
+                        <div class="diary-section-header">
+                            <span class="diary-section-label">📝 한국어</span>
+                            <span class="char-count" id="diary-ko-char-count">0자</span>
+                        </div>
+                        <textarea id="daily-diary-ko" class="diary-textarea diary-ko"
+                            placeholder="오늘 하루를 자유롭게 기록해보세요."></textarea>
                     </div>
-                    <textarea id="daily-diary" class="diary-textarea"
-                        placeholder="오늘 하루를 기록해보세요. 영어 최소 3문장 포함!"></textarea>
-                    <div class="diary-nudge" id="diary-nudge">
-                        📚 일기를 다 썼다면, 이제 화면을 끄고 책을 펼칠 시간입니다.
+
+                    <!-- 영어 일기 -->
+                    <div class="diary-section diary-section-en">
+                        <div class="diary-section-header">
+                            <span class="diary-section-label">🇺🇸 영어 일기 <span class="badge important" style="font-size:0.55rem;vertical-align:middle">Core</span></span>
+                            <span class="char-count" id="diary-en-char-count">0자</span>
+                        </div>
+                        <div class="daily-expr-banner" id="daily-expr-banner">
+                            <span class="expr-icon" id="expr-icon">💡</span>
+                            <span class="expr-body">오늘의 표현: <strong id="expr-text"></strong> <span class="expr-meaning" id="expr-meaning"></span></span>
+                            <span class="expr-hint">→ 일기에 써보세요!</span>
+                        </div>
+                        <textarea id="daily-diary-en" class="diary-textarea diary-en"
+                            placeholder="Write at least 3 sentences in English. Try using today's expression!"></textarea>
+                        <div class="diary-nudge" id="diary-nudge">
+                            📚 일기를 다 썼다면, 이제 화면을 끄고 책을 펼칠 시간입니다.
+                        </div>
                     </div>
                 </section>
                 <div class="side-col">

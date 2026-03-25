@@ -240,6 +240,7 @@ function _checkExprInDiary(text,expr){
     var found=text.toLowerCase().indexOf(expr.toLowerCase())>=0;
     D.expr_icon.textContent=found?'✅':'💡';
     if(D.daily_expr_banner)D.daily_expr_banner.classList.toggle('expr-matched',found);
+    if(D.daily_diary_en)D.daily_diary_en.classList.toggle('expr-matched',found);
 }
 
 // ===== TOAST =====
@@ -269,7 +270,7 @@ function showCoreModal(){
 // ===== STATE =====
 var currentDate=new Date(), calendarDate=new Date();
 var flowMode=false;
-var currentData={tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_meaning:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
+var currentData={tasks:{},diary_ko:'',diary_en:'',memo:'',hanja_char:'',hanja_reading:'',hanja_meaning:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
 
 // ===== UTILS =====
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -370,7 +371,7 @@ async function renderHanjaHistory(){
 
 function cacheDom(){
     ['current-date-display','prev-day','next-day','weekly-ribbon','mode-container',
-     'daily-diary','diary-char-count','daily-memo','sync-status',
+     'daily-diary-ko','diary-ko-char-count','daily-diary-en','diary-en-char-count','daily-memo','sync-status',
      'daily-expr-banner','expr-icon','expr-text','expr-meaning',
      'toast-container',
      'core-check-modal','core-modal-missing','core-modal-quit','core-modal-go',
@@ -456,8 +457,10 @@ async function loadDate(date){
     D.current_date_display.textContent=kd(currentDate);
 
     var saved=await DataService.getDailyData(ds);
-    currentData=saved||{tasks:{},diary:'',memo:'',hanja_char:'',hanja_reading:'',hanja_meaning:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
-    if(currentData.note&&!currentData.diary)currentData.diary=currentData.note;
+    currentData=saved||{tasks:{},diary_ko:'',diary_en:'',memo:'',hanja_char:'',hanja_reading:'',hanja_meaning:'',hanja_note:'',paper_log:{what:'',result:'',idea:'',tags:''},radar_insight:'',flow_text:'',flow_mode:false};
+    // 하위 호환: 기존 diary → diary_ko 마이그레이션
+    if(currentData.note&&!currentData.diary_ko)currentData.diary_ko=currentData.note;
+    if(currentData.diary&&!currentData.diary_ko){currentData.diary_ko=currentData.diary;}
     if(!currentData.paper_log)currentData.paper_log={what:'',result:'',idea:'',tags:''};
     currentData.weekend_mode=isWeekend(currentDate);
 
@@ -465,17 +468,19 @@ async function loadDate(date){
     flowMode=!!currentData.flow_mode;
     applyFlowMode();
     renderModes();
-    D.daily_diary.value=currentData.diary||'';
+    D.daily_diary_ko.value=currentData.diary_ko||'';
+    D.daily_diary_en.value=currentData.diary_en||'';
     D.daily_memo.value=currentData.memo||'';
-    D.diary_char_count.textContent=(currentData.diary||'').length+'자';
+    D.diary_ko_char_count.textContent=(currentData.diary_ko||'').length+'자';
+    D.diary_en_char_count.textContent=(currentData.diary_en||'').length+'자';
     var nudge=document.getElementById('diary-nudge');
-    if(nudge)nudge.classList.toggle('visible',(currentData.diary||'').length>30);
+    if(nudge)nudge.classList.toggle('visible',(currentData.diary_en||'').length>30);
 
     // Daily expression
     var expr=getDailyExpr(ds);
     D.expr_text.textContent=expr.expr;
     D.expr_meaning.textContent='('+expr.meaning+')';
-    _checkExprInDiary(currentData.diary||'',expr.expr);
+    _checkExprInDiary(currentData.diary_en||'',expr.expr);
 
     // Reset core modal flag for new date
     _coreModalShownDate='';
@@ -493,18 +498,23 @@ async function loadDate(date){
 function setupEvents(){
     D.prev_day.addEventListener('click',function(){var d=new Date(currentDate);d.setDate(d.getDate()-1);loadDate(d)});
     D.next_day.addEventListener('click',function(){var d=new Date(currentDate);d.setDate(d.getDate()+1);loadDate(d)});
-    D.daily_diary.addEventListener('input',function(e){
-        currentData.diary=e.target.value;
-        D.diary_char_count.textContent=e.target.value.length+'자';
+    D.daily_diary_ko.addEventListener('input',function(e){
+        currentData.diary_ko=e.target.value;
+        D.diary_ko_char_count.textContent=e.target.value.length+'자';
+        save();
+    });
+    D.daily_diary_en.addEventListener('input',function(e){
+        currentData.diary_en=e.target.value;
+        D.diary_en_char_count.textContent=e.target.value.length+'자';
         var nudge=document.getElementById('diary-nudge');
         if(nudge)nudge.classList.toggle('visible',e.target.value.length>30);
         _checkExprInDiary(e.target.value,getDailyExpr(fmt(currentDate)).expr);
         save();
     });
-    D.daily_diary.addEventListener('focus',function(){
+    D.daily_diary_en.addEventListener('focus',function(){
         var ds=fmt(currentDate);
         if(_coreModalShownDate===ds)return;
-        var missing=CORE_TASK_IDS.filter(function(id){return !currentData.tasks[id]});
+        var missing=CORE_TASK_IDS.filter(function(id){return id!=='eng_diary'&&!currentData.tasks[id]});
         if(!missing.length)return;
         _coreModalShownDate=ds;
         showCoreModal();
@@ -1133,7 +1143,7 @@ async function renderCalendar(){
         var cell=document.createElement('div');cell.className='cal-day';
         var dk=fmt(new Date(y,m,day)),dd=md[dk]||null,rate=compRate(dd);
         if(dd&&Object.keys(dd.tasks||{}).length>0){if(rate>=1)cell.classList.add('level-4');else if(rate>=.71)cell.classList.add('level-3');else if(rate>=.31)cell.classList.add('level-2');else cell.classList.add('level-1')}
-        if(dd&&(dd.diary||dd.note)&&(dd.diary||dd.note).trim())cell.classList.add('has-diary');
+        if(dd&&(dd.diary_ko||dd.diary_en||dd.diary||dd.note)&&(dd.diary_ko||dd.diary_en||dd.diary||dd.note).trim())cell.classList.add('has-diary');
         if(sameDay(new Date(y,m,day),today))cell.classList.add('today');
         var num=document.createElement('span');num.className='cal-num';num.textContent=day;cell.appendChild(num);
         (function(data,key){cell.addEventListener('click',function(){showDetail(key,data)})})(dd,dk);
@@ -1158,7 +1168,10 @@ function showDetail(ds,data){
         D.detail_content.appendChild(ld);
     }
     if(data.radar_insight){var ri=document.createElement('div');ri.className='radar-entry-insight';ri.innerHTML='<strong>🌟</strong> '+renderMd(data.radar_insight);D.detail_content.appendChild(ri)}
-    var diary=data.diary||data.note||'';if(diary.trim()){var dd2=document.createElement('div');dd2.className='detail-diary';dd2.textContent=diary;D.detail_content.appendChild(dd2)}
+    var diaryKo=data.diary_ko||data.diary||data.note||'';
+    var diaryEn=data.diary_en||'';
+    if(diaryKo.trim()){var dd2=document.createElement('div');dd2.className='detail-diary';dd2.innerHTML='<span style="font-size:0.7rem;color:#888;font-weight:600">📝 한국어</span><br>'+diaryKo;D.detail_content.appendChild(dd2)}
+    if(diaryEn.trim()){var dd3=document.createElement('div');dd3.className='detail-diary';dd3.innerHTML='<span style="font-size:0.7rem;color:#888;font-weight:600">🇺🇸 영어</span><br>'+diaryEn;D.detail_content.appendChild(dd3)}
     if(data.hanja_char){var hd=document.createElement('div');hd.className='detail-hanja';hd.innerHTML='<strong>'+data.hanja_char+'</strong> '+(data.hanja_reading||'')+(data.hanja_meaning?' — '+data.hanja_meaning:'')+(data.hanja_note?'<br><em>'+data.hanja_note+'</em>':'');D.detail_content.appendChild(hd)}
     D.day_detail.style.display='block';
 
@@ -1295,7 +1308,7 @@ function renderDiaryStats(rangeData){
     for(var i=29;i>=0;i--){
         var d=new Date(today);d.setDate(today.getDate()-i);
         var data=rangeData[fmt(d)]||null;
-        var has=data&&(data.diary||data.note)&&(data.diary||data.note).trim().length>0;
+        var has=data&&((data.diary_ko||data.diary_en||data.diary||data.note||'').trim().length>0);
         if(has)written++;dots.push(has);
     }
     c.innerHTML='<div class="diary-stats-text">최근 30일 중 '+written+'일 작성 ('+Math.round(written/30*100)+'%)</div>';

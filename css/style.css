@@ -129,8 +129,17 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 /* BOTTOM GRID */
 .bottom-grid{display:grid;grid-template-columns:1.2fr 0.8fr;gap:1rem}
 .diary-card{border-left:4px solid var(--purple)}
-.diary-textarea{width:100%;min-height:150px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.9rem;color:var(--text);font-family:inherit;font-size:0.85rem;line-height:1.8;resize:vertical;transition:border var(--tr)}
+.diary-section{display:flex;flex-direction:column;gap:0.4rem;margin-bottom:0.75rem}
+.diary-section:last-child{margin-bottom:0}
+.diary-section-header{display:flex;justify-content:space-between;align-items:center}
+.diary-section-label{font-size:0.75rem;font-weight:700;color:var(--text2);letter-spacing:0.02em}
+.diary-section-en{padding-top:0.75rem;border-top:1px dashed var(--border)}
+.diary-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.9rem;color:var(--text);font-family:inherit;font-size:0.85rem;line-height:1.8;resize:vertical;transition:border var(--tr)}
 .diary-textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(123,94,167,0.1)}
+.diary-ko{min-height:100px}
+.diary-en{min-height:140px}
+.diary-en:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(52,168,83,0.1)}
+.diary-en.expr-matched{border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,0.2)!important}
 .memo-textarea{width:100%;min-height:55px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--rs);padding:0.6rem;color:var(--text);font-family:inherit;font-size:0.8rem;line-height:1.6;resize:vertical;transition:border var(--tr)}
 .memo-textarea:focus{outline:none;border-color:var(--green)}
 .side-col{display:flex;flex-direction:column;gap:0}
