@@ -1,8 +1,8 @@
 const admin = require('firebase-admin');
 
 // ===== CONFIG =====
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+const CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 let SERVICE_ACCOUNT = {};
 try {
   SERVICE_ACCOUNT = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');

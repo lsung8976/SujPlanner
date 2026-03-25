@@ -7,9 +7,9 @@ import random
 import re
 from datetime import datetime, timedelta
 
-BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
-CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
-GEMINI_API_KEY = os.environ['GEMINI_API_KEY']
+BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN'].strip()
+CHAT_ID = os.environ['TELEGRAM_CHAT_ID'].strip()
+GEMINI_API_KEY = os.environ['GEMINI_API_KEY'].strip()
 
 # ===== ARXIV =====
 ARXIV_KEYWORDS = [
@@ -95,16 +95,24 @@ def summarize_with_gemini(title, abstract):
 [제목]: {title}
 [내용]: {abstract[:2000]}"""
 
+    import time
     url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}'
     body = json.dumps({
         'contents': [{'parts': [{'text': prompt}]}]
     }).encode('utf-8')
 
-    req = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        result = json.loads(resp.read().decode('utf-8'))
-
-    return result['candidates'][0]['content']['parts'][0]['text']
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read().decode('utf-8'))
+            return result['candidates'][0]['content']['parts'][0]['text']
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 2:
+                print(f'Gemini rate limited, retrying in {(attempt+1)*10}s...')
+                time.sleep((attempt + 1) * 10)
+            else:
+                raise
 
 # ===== TELEGRAM =====
 def send_telegram(text):
