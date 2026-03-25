@@ -195,6 +195,15 @@ async function fetchGoogleCalendarWeek(startDate) {
     }
 }
 
+// Firestore timeout wrapper (8s timeout -> fallback to localStorage)
+function withTimeout(promise, ms) {
+    var timeout = new Promise(function(_, reject) {
+        setTimeout(function() { reject(new Error('Firestore timeout (' + ms + 'ms)')); }, ms);
+    });
+    return Promise.race([promise, timeout]);
+}
+var FIRESTORE_TIMEOUT = 8000;
+
 // Data Interface - Firebase + LocalStorage fallback + in-memory cache
 var _cache = {};
 
@@ -203,12 +212,12 @@ var DataService = {
         if (_cache[dateStr] !== undefined) return _cache[dateStr];
         if (isFirebaseConfigured && db) {
             try {
-                var docSnap = await db.collection("daily_routines").doc(dateStr).get();
+                var docSnap = await withTimeout(db.collection("daily_routines").doc(dateStr).get(), FIRESTORE_TIMEOUT);
                 var val = docSnap.exists ? docSnap.data() : null;
                 _cache[dateStr] = val;
                 return val;
             } catch (e) {
-                console.error("Error reading from Firebase", e);
+                console.warn("Firestore read failed, using localStorage:", e.message);
                 return this.getLocalData(dateStr);
             }
         }
@@ -226,10 +235,10 @@ var DataService = {
 
         if (isFirebaseConfigured && db) {
             try {
-                var snap = await db.collection("daily_routines")
+                var snap = await withTimeout(db.collection("daily_routines")
                     .where(firebase.firestore.FieldPath.documentId(), '>=', startStr)
                     .where(firebase.firestore.FieldPath.documentId(), '<=', endStr)
-                    .get();
+                    .get(), FIRESTORE_TIMEOUT);
                 snap.forEach(function(doc) {
                     result[doc.id] = doc.data();
                     _cache[doc.id] = doc.data();
@@ -275,10 +284,10 @@ var DataService = {
         if (isFirebaseConfigured && db && uncached.length > 0) {
             try {
                 uncached.sort();
-                var snap = await db.collection("daily_routines")
+                var snap = await withTimeout(db.collection("daily_routines")
                     .where(firebase.firestore.FieldPath.documentId(), '>=', uncached[0])
                     .where(firebase.firestore.FieldPath.documentId(), '<=', uncached[uncached.length-1])
-                    .get();
+                    .get(), FIRESTORE_TIMEOUT);
                 snap.forEach(function(doc) {
                     result[doc.id] = doc.data();
                     _cache[doc.id] = doc.data();

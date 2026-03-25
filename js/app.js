@@ -295,7 +295,7 @@ var TrackService = {
     async getAll(collection) {
         if (isFirebaseConfigured && db) {
             try {
-                var snap = await db.collection(collection).orderBy('created','desc').get();
+                var snap = await withTimeout(db.collection(collection).orderBy('created','desc').get(), FIRESTORE_TIMEOUT);
                 var items = []; snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; items.push(d); });
                 return items;
             } catch(e) { console.error(e); return this.getLocal(collection); }
