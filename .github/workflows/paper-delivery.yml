@@ -2,23 +2,46 @@ name: Paper Delivery Agent
 
 on:
   schedule:
-    # KST 06:00 = UTC 21:00 (previous day)
+    # KST 06:00 = UTC 21:00 (previous day) - Community Pick
     - cron: '0 21 * * *'
+    # KST 10:00 = UTC 01:00 - ArXiv Curation
+    - cron: '0 1 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Delivery mode (community/arxiv)'
+        required: false
+        default: 'arxiv'
 
 jobs:
-  deliver:
+  community:
+    if: github.event.schedule == '0 21 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'community')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: Deliver today's paper
+      - name: Community Pick (PyTorch Korea)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PAPER_MODE: community
+        run: python scripts/paper-agent.py
+
+  arxiv:
+    if: github.event.schedule == '0 1 * * *' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.mode == 'arxiv' || github.event.inputs.mode == ''))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: ArXiv Paper Curation
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PAPER_MODE: arxiv
         run: python scripts/paper-agent.py
