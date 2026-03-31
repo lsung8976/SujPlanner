@@ -295,11 +295,23 @@ var TrackService = {
     async getAll(collection) {
         if (isFirebaseConfigured && db) {
             try {
-                var snap = await withTimeout(db.collection(collection).orderBy('created','desc').get(), FIRESTORE_TIMEOUT);
+                var snap;
+                try {
+                    snap = await withTimeout(db.collection(collection).orderBy('created','desc').get(), FIRESTORE_TIMEOUT);
+                } catch(orderErr) {
+                    console.warn('orderBy failed, fetching without order:', orderErr.message);
+                    snap = await withTimeout(db.collection(collection).get(), FIRESTORE_TIMEOUT);
+                }
                 var items = []; snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; items.push(d); });
+                items.sort(function(a,b){ return (b.created||'').localeCompare(a.created||''); });
                 localStorage.setItem('suj_'+collection, JSON.stringify(items));
                 return items;
-            } catch(e) { console.error(e); return this.getLocal(collection); }
+            } catch(e) {
+                console.error('Firebase getAll failed for '+collection+':', e.message);
+                var local = this.getLocal(collection);
+                if (!local.length) console.warn(collection+': Firebase 실패 + localStorage 비어있음');
+                return local;
+            }
         }
         return this.getLocal(collection);
     },
