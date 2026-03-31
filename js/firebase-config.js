@@ -202,7 +202,7 @@ function withTimeout(promise, ms) {
     });
     return Promise.race([promise, timeout]);
 }
-var FIRESTORE_TIMEOUT = 8000;
+var FIRESTORE_TIMEOUT = 30000;
 
 // Data Interface - Firebase + LocalStorage fallback + in-memory cache
 var _cache = {};
