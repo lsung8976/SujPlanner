@@ -774,6 +774,7 @@ function promoteRadarToCore(){
     D.radar_form.style.display='none';
 }
 
+var RADAR_PAGE_SIZE=10, radarAllItems=[], radarShown=0;
 async function loadRadarList(query){
     var list=D.radar_list; list.innerHTML='';showLoading('AI Radar 불러오는 중...');
     var items=await TrackService.getAll('radar_entries');
@@ -788,7 +789,17 @@ async function loadRadarList(query){
     hideLoading();
     if(!items.length){list.innerHTML='<div class="empty-state">'+(q?'"'+query+'" 검색 결과 없음':'아직 AI Radar 항목이 없습니다. + 버튼으로 추가해보세요!')+'</div>';return}
 
-    items.forEach(function(item){
+    radarAllItems=items;radarShown=0;
+    renderRadarPage(q);
+}
+function renderRadarPage(q){
+    var list=D.radar_list;
+    var end=Math.min(radarShown+RADAR_PAGE_SIZE,radarAllItems.length);
+    var page=radarAllItems.slice(radarShown,end);
+    // Remove old "more" button
+    var oldMore=list.querySelector('.load-more-btn');if(oldMore)oldMore.remove();
+
+    page.forEach(function(item){
         var entry=document.createElement('div');entry.className='radar-entry';
         var hdr=document.createElement('div');hdr.className='radar-entry-header';
         hdr.innerHTML='<span class="radar-entry-title">'+item.title+'</span><span class="radar-entry-date">'+(item.created||'').substring(0,10)+'</span>';
@@ -839,6 +850,16 @@ async function loadRadarList(query){
         entry.appendChild(acts);
         list.appendChild(entry);
     });
+    radarShown=end;
+    if(radarShown<radarAllItems.length){
+        var more=document.createElement('button');more.className='load-more-btn';
+        more.textContent='더 보기 ('+radarShown+'/'+radarAllItems.length+')';
+        more.addEventListener('click',function(){renderRadarPage(q)});
+        list.appendChild(more);
+    } else if(radarAllItems.length>RADAR_PAGE_SIZE){
+        var info=document.createElement('div');info.className='load-more-info';info.textContent='전체 '+radarAllItems.length+'건 표시 완료';
+        list.appendChild(info);
+    }
     hideLoading();
 }
 
@@ -863,6 +884,7 @@ async function saveCoreEntry(){
     loadCoreList('','all');
 }
 
+var CORE_PAGE_SIZE=10, coreAllItems=[], coreShown=0;
 async function loadCoreList(query,filter){
     var list=D.core_list;list.innerHTML='';showLoading('Core Research 불러오는 중...');
     var items=await TrackService.getAll('core_entries');
@@ -874,9 +896,18 @@ async function loadCoreList(query,filter){
     hideLoading();
     if(!items.length){list.innerHTML='<div class="empty-state">'+(q||filter!=='all'?'검색 결과 없음':'아직 Core Research 항목이 없습니다.')+'</div>';return}
 
+    coreAllItems=items;coreShown=0;
+    renderCorePage(q,filter);
+}
+function renderCorePage(q,filter){
+    var list=D.core_list;
+    var end=Math.min(coreShown+CORE_PAGE_SIZE,coreAllItems.length);
+    var page=coreAllItems.slice(coreShown,end);
+    var oldMore=list.querySelector('.load-more-btn');if(oldMore)oldMore.remove();
+
     var statusMap={reading:'📖 읽는 중',implemented:'⚙️ 구현 완료',cited:'📝 인용됨',archived:'📦 보관'};
 
-    items.forEach(function(item){
+    page.forEach(function(item){
         var entry=document.createElement('div');entry.className='core-entry';
 
         var hdr=document.createElement('div');hdr.className='core-entry-header';
@@ -935,6 +966,16 @@ async function loadCoreList(query,filter){
         entry.appendChild(acts);
         list.appendChild(entry);
     });
+    coreShown=end;
+    if(coreShown<coreAllItems.length){
+        var more=document.createElement('button');more.className='load-more-btn';
+        more.textContent='더 보기 ('+coreShown+'/'+coreAllItems.length+')';
+        more.addEventListener('click',function(){renderCorePage(q,filter)});
+        list.appendChild(more);
+    } else if(coreAllItems.length>CORE_PAGE_SIZE){
+        var info=document.createElement('div');info.className='load-more-info';info.textContent='전체 '+coreAllItems.length+'건 표시 완료';
+        list.appendChild(info);
+    }
     hideLoading();
 }
 
