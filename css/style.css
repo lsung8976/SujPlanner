@@ -275,6 +275,9 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-s
 .core-actions button:hover{background:var(--hover);border-color:var(--green)}
 
 .empty-state{text-align:center;padding:3rem;color:var(--text3);font-size:0.88rem}
+.load-more-btn{display:block;width:100%;padding:0.7rem;margin-top:0.8rem;background:var(--card);border:1.5px dashed var(--border);border-radius:var(--rs);font-size:0.82rem;font-weight:600;color:var(--green);cursor:pointer;transition:all var(--tr);font-family:inherit}
+.load-more-btn:hover{background:var(--hover);border-color:var(--green)}
+.load-more-info{text-align:center;padding:0.5rem;margin-top:0.5rem;font-size:0.75rem;color:var(--text3)}
 
 /* ===== CALENDAR ===== */
 .calendar-header{display:flex;align-items:center;justify-content:center;gap:1.5rem;margin-bottom:1rem}
