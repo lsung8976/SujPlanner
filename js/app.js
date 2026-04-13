@@ -292,25 +292,40 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(
 
 // ===== TRACK A/B DATA SERVICE =====
 var TrackService = {
-    async getAll(collection) {
+    // pageSize: 0 = all (for search/filter), default 50
+    async getAll(collection, pageSize) {
+        var limit = (pageSize === undefined) ? 50 : pageSize;
         if (isFirebaseConfigured && db) {
             try {
-                var snap;
+                var query = db.collection(collection);
+                // Try orderBy first, fallback to unordered
                 try {
-                    snap = await db.collection(collection).orderBy('created','desc').get();
-                } catch(orderErr) {
-                    console.warn('orderBy failed, fetching without order:', orderErr.message);
-                    snap = await db.collection(collection).get();
-                }
+                    query = query.orderBy('created','desc');
+                } catch(e) { /* index missing, skip ordering */ }
+                if (limit > 0) query = query.limit(limit);
+                var snap = await query.get();
                 var items = []; snap.forEach(function(doc){ var d=doc.data(); d._id=doc.id; items.push(d); });
+                // Client-side sort as safety net
                 items.sort(function(a,b){ return (b.created||'').localeCompare(a.created||''); });
-                localStorage.setItem('suj_'+collection, JSON.stringify(items));
+                // Cache to localStorage
+                if (limit === 0 || items.length < limit) {
+                    localStorage.setItem('suj_'+collection, JSON.stringify(items));
+                }
                 return items;
             } catch(e) {
-                console.error('Firebase getAll failed for '+collection+':', e.message);
+                console.warn('Firebase getAll('+collection+') failed:', e.message);
                 var local = this.getLocal(collection);
-                if (!local.length) console.warn(collection+': Firebase 실패 + localStorage 비어있음');
-                return local;
+                if (local.length) return local;
+                // Last resort: retry without orderBy and with small limit
+                try {
+                    var snap2 = await db.collection(collection).limit(limit||50).get();
+                    var items2 = []; snap2.forEach(function(doc){ var d=doc.data(); d._id=doc.id; items2.push(d); });
+                    items2.sort(function(a,b){ return (b.created||'').localeCompare(a.created||''); });
+                    return items2;
+                } catch(e2) {
+                    console.error(collection+': 모든 시도 실패', e2.message);
+                    return [];
+                }
             }
         }
         return this.getLocal(collection);
@@ -360,7 +375,7 @@ async function renderHanjaHistory(){
     var el=document.getElementById('hanja-history');if(!el)return;
     var all=[];
     try{
-        var keys=await TrackService.getAll('daily_routines');
+        var keys=await TrackService.getAll('daily_routines', 20);
         keys.forEach(function(d){
             if(d.hanja_char&&d.hanja_char.trim()){
                 all.push({date:d._id||'',char:d.hanja_char,reading:d.hanja_reading||'',meaning:d.hanja_meaning||'',note:d.hanja_note||''});
@@ -963,7 +978,7 @@ async function saveRadarEntry(){
 }
 
 async function getRadarById(id){
-    var all=await TrackService.getAll('radar_entries');
+    var all=await TrackService.getAll('radar_entries', 0);
     return all.find(function(x){return x._id===id});
 }
 
@@ -980,8 +995,8 @@ function promoteRadarToCore(){
 var RADAR_PAGE_SIZE=10, radarAllItems=[], radarShown=0;
 async function loadRadarList(query){
     var list=D.radar_list; list.innerHTML='';showLoading('AI Radar 불러오는 중...');
-    var items=await TrackService.getAll('radar_entries');
     var q=query.trim().toLowerCase();
+    var items=await TrackService.getAll('radar_entries', q ? 0 : 50);
 
     if(q){
         items=items.filter(function(x){
@@ -1090,8 +1105,9 @@ async function saveCoreEntry(){
 var CORE_PAGE_SIZE=10, coreAllItems=[], coreShown=0;
 async function loadCoreList(query,filter){
     var list=D.core_list;list.innerHTML='';showLoading('Core Research 불러오는 중...');
-    var items=await TrackService.getAll('core_entries');
     var q=query.trim().toLowerCase();
+    var hasFilter=(filter&&filter!=='all');
+    var items=await TrackService.getAll('core_entries', (q||hasFilter) ? 0 : 50);
 
     if(q){items=items.filter(function(x){return((x.paper||'')+' '+(x.tags||'')+' '+(x.application||'')+' '+(x.critique||'')+' '+(x.notes||'')).toLowerCase().indexOf(q)>=0})}
     if(filter&&filter!=='all'){items=items.filter(function(x){return x.status===filter})}
