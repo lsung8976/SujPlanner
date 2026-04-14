@@ -27,7 +27,7 @@ try {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
         // WebChannel 연결 실패 방지: Long Polling 모드 사용
-        db.settings({ experimentalForceLongPolling: true, merge: true });
+        db.settings({ experimentalForceLongPolling: true });
         auth = firebase.auth();
         isFirebaseConfigured = true;
         console.log("Firebase initialized successfully.");
