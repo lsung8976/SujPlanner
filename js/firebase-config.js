@@ -60,12 +60,26 @@ function setupAuth() {
     }
 
     loginBtn.addEventListener('click', function() {
+        // Try popup first, fallback to redirect
         auth.signInWithPopup(googleProvider).then(function(result) {
-            _googleAccessToken = result.credential.accessToken;
+            _googleAccessToken = result.credential ? result.credential.accessToken : null;
         }).catch(function(error) {
-            console.error('Login error:', error);
-            alert('로그인 실패: ' + error.message);
+            console.warn('Popup login failed, trying redirect:', error.code);
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                auth.signInWithRedirect(googleProvider);
+            } else {
+                alert('로그인 실패: ' + error.message);
+            }
         });
+    });
+
+    // Handle redirect result (when returning from Google login page)
+    auth.getRedirectResult().then(function(result) {
+        if (result && result.credential) {
+            _googleAccessToken = result.credential.accessToken;
+        }
+    }).catch(function(error) {
+        console.error('Redirect login error:', error);
     });
 
     logoutBtn.addEventListener('click', function() {
